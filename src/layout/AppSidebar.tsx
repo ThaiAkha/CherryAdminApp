@@ -26,10 +26,12 @@ const navGroups: { name: string; items: NavItem[] }[] = [
     items: [
       { icon: <GridIcon />, name: "Home", path: "/" },
       { icon: <TableIcon />, name: "Booking Details", path: "/booking-overview" },
-      { icon: <CalenderIcon />, name: "New Booking", path: "/booking" },
+      { icon: <CalenderIcon />, name: "New Fast Booking", path: "/admin-booking-new" },
+      { icon: <CalenderIcon />, name: "New Booking (Site)", path: "/booking" },
       { icon: <PageIcon />, name: "Logistics", path: "/logistics" },
       { icon: <PageIcon />, name: "Storefront", path: "/store-front" },
       { icon: <PageIcon />, name: "Market Shop", path: "/market-shop" },
+      { icon: <UserCircleIcon />, name: "Market Runner", path: "/market-runner" },
       { icon: <CalenderIcon />, name: "Calendar", path: "/calendar" },
       { icon: <PageIcon />, name: "Store Manager", path: "/store-manager" },
     ]

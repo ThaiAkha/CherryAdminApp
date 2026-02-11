@@ -1,14 +1,18 @@
 import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 
-export default function ProtectedRoute() {
+interface ProtectedRouteProps {
+    children?: React.ReactNode;
+    allowedRoles?: string[];
+}
+
+export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     const { user, loading } = useAuth();
 
     if (loading) {
-        // You can replace this with a proper loading spinner
         return (
             <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
-                <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-600 border-t-transparent"></div>
             </div>
         );
     }
@@ -17,5 +21,9 @@ export default function ProtectedRoute() {
         return <Navigate to="/signin" replace />;
     }
 
-    return <Outlet />;
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" replace />;
+    }
+
+    return children ? <>{children}</> : <Outlet />;
 }

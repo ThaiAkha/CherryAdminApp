@@ -1,5 +1,8 @@
+import React from "react";
+import { User } from "lucide-react";
+
 interface AvatarProps {
-  src: string; // URL of the avatar image
+  src?: string; // URL of the avatar image
   alt?: string; // Alt text for the avatar
   size?: "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge"; // Avatar size
   status?: "online" | "offline" | "busy" | "none"; // Status indicator
@@ -24,9 +27,10 @@ const statusSizeClasses = {
 };
 
 const statusColorClasses = {
-  online: "bg-success-500",
-  offline: "bg-error-400",
-  busy: "bg-warning-500",
+  online: "bg-green-500",
+  offline: "bg-red-500",
+  busy: "bg-yellow-500",
+  none: ""
 };
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -36,16 +40,25 @@ const Avatar: React.FC<AvatarProps> = ({
   status = "none",
 }) => {
   return (
-    <div className={`relative  rounded-full ${sizeClasses[size]}`}>
-      {/* Avatar Image */}
-      <img src={src} alt={alt} className="object-cover rounded-full" />
+    <div className={`relative inline-block rounded-full ${sizeClasses[size]}`}>
+      {/* Avatar Image or Fallback */}
+      {src ? (
+        <img
+          src={src}
+          alt={alt}
+          className="h-full w-full object-cover rounded-full"
+        />
+      ) : (
+        <div className="h-full w-full rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-400">
+          <User className="w-[60%] h-[60%]" />
+        </div>
+      )}
 
       {/* Status Indicator */}
       {status !== "none" && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${
-            statusSizeClasses[size]
-          } ${statusColorClasses[status] || ""}`}
+          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${statusSizeClasses[size]
+            } ${statusColorClasses[status] || ""}`}
         ></span>
       )}
     </div>

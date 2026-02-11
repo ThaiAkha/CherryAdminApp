@@ -4,7 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
 import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
 import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
-import RecentOrders from "../../components/ecommerce/RecentOrders";
+import RecentBookings from "../../components/booking/RecentBookings";
+import AgencyRecentBookings from "../../components/booking/AgencyRecentBookings";
 import DemographicCard from "../../components/ecommerce/DemographicCard";
 import PageMeta from "../../components/common/PageMeta";
 import PageContainer from "../../components/layout/PageContainer";
@@ -35,12 +36,18 @@ export default function Home() {
             <MonthlyTarget />
           </div>
 
-          <div className="col-span-12 xl:col-span-5">
-            <DemographicCard />
+          {/* Row 2: Booking Tables */}
+          <div className="col-span-12 xl:col-span-6">
+            <AgencyRecentBookings />
           </div>
 
-          <div className="col-span-12 xl:col-span-7">
-            <RecentOrders />
+          <div className="col-span-12 xl:col-span-6">
+            <RecentBookings />
+          </div>
+
+          {/* Row 3: Demographic */}
+          <div className="col-span-12 xl:col-span-12">
+            <DemographicCard />
           </div>
         </div>
       </PageContainer>

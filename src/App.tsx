@@ -19,6 +19,7 @@ import StoreManager from "./pages/StoreManager";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import MarketShop from "./pages/MarketShop";
 import Reports from "./pages/Reports";
+import AdminBookingCreate from "./pages/admin/AdminBookingCreate";
 
 
 export default function App() {
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="/booking-overview" element={<BookingOverview onNavigate={() => { }} />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/agency-dashboard" element={<AgencyDashboard />} />
+              <Route path="/admin-booking-new" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminBookingCreate /></ProtectedRoute>} />
               <Route path="/logistics" element={<Logistics onNavigate={() => { }} />} />
               <Route path="/driver" element={<DriverDashboard onNavigate={() => { }} />} />
               <Route path="/market-runner" element={<MarketRunner />} />
