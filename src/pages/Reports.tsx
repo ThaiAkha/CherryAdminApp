@@ -15,6 +15,7 @@ import {
     Calendar,
     Briefcase
 } from 'lucide-react';
+import PageHeader from '../components/layout/PageHeader';
 
 // --- TYPES ---
 interface ReportCard {
@@ -84,9 +85,9 @@ const Reports: React.FC = () => {
                         key={report.id}
                         onClick={() => setSelectedReportId(report.id)}
                         className={cn(
-                            "group cursor-pointer p-6 rounded-[2rem] border transition-all duration-300",
+                            "group cursor-pointer p-6 rounded-3xl border transition-all duration-300",
                             selectedReportId === report.id
-                                ? "bg-white dark:bg-gray-800 border-brand-500 shadow-brand-glow"
+                                ? "bg-white dark:bg-gray-800 border-brand-500 shadow-lg shadow-brand-500/10"
                                 : "bg-white dark:bg-[#1a1a1a]/80 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700"
                         )}
                     >
@@ -106,17 +107,17 @@ const Reports: React.FC = () => {
                             </div>
                         </div>
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{report.title}</h4>
-                        <p className="text-2xl font-black italic tracking-tighter text-gray-900 dark:text-white">{report.value}</p>
+                        <p className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white">{report.value}</p>
                     </div>
                 ))}
             </div>
 
             {/* Additional Info / Future Charts Placeholder */}
-            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-8 shadow-sm">
+            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h4 className="text-xl font-black italic uppercase tracking-tight text-gray-900 dark:text-white">Growth Analysis</h4>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">Last 30 days Performance</p>
+                        <h4 className="text-xl font-black uppercase tracking-tight text-gray-900 dark:text-white leading-none mb-1">Growth Analysis</h4>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Last 30 days Performance</p>
                     </div>
                     <Badge variant="light" color="primary">Live Data</Badge>
                 </div>
@@ -132,28 +133,28 @@ const Reports: React.FC = () => {
 
     const renderDetailPanel = () => {
         if (!selectedReport) return (
-            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-[3rem]">
+            <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-3xl">
                 <PieChart className="w-12 h-12 text-gray-200 mb-4" />
                 <p className="text-xs font-black uppercase text-gray-400 tracking-widest">Select a metric for details</p>
             </div>
         );
 
         return (
-            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-8 shadow-sm h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="flex items-center gap-4 mb-8">
                     <div className="size-14 rounded-2xl bg-brand-500 flex items-center justify-center text-white shadow-lg">
                         {selectedReport.icon}
                     </div>
                     <div>
-                        <h4 className="text-2xl font-black italic uppercase text-gray-900 dark:text-white leading-none">{selectedReport.title}</h4>
-                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Deep Dive Breakdown</p>
+                        <h4 className="text-2xl font-black uppercase text-gray-900 dark:text-white leading-none mb-1">{selectedReport.title}</h4>
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Deep Dive Breakdown</p>
                     </div>
                 </div>
 
                 <div className="flex-1 space-y-8">
                     <div className="p-6 bg-gray-50 dark:bg-gray-900/50 rounded-3xl border border-gray-100 dark:border-gray-800">
                         <h5 className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-3">Summary Overview</h5>
-                        <p className="text-sm font-bold text-gray-600 dark:text-gray-400 leading-relaxed italic">
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed italic">
                             "{selectedReport.details}"
                         </p>
                     </div>
@@ -176,7 +177,7 @@ const Reports: React.FC = () => {
                     <div className="space-y-4">
                         <h5 className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-2">Key Drivers</h5>
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group">
+                            <div key={i} className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group cursor-pointer">
                                 <div className="flex items-center gap-3">
                                     <div className="size-2 rounded-full bg-brand-500 group-hover:animate-pulse" />
                                     <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Factor Detail #{i}</span>
@@ -188,7 +189,7 @@ const Reports: React.FC = () => {
                 </div>
 
                 <div className="pt-8 border-t border-gray-100 dark:border-gray-800 mt-auto">
-                    <button className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <button className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 h-12 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
                         Export Full PDF Report
                     </button>
                 </div>
@@ -197,37 +198,31 @@ const Reports: React.FC = () => {
     };
 
     return (
-        <PageContainer>
-            <div className="flex flex-col gap-6 w-full mx-auto pb-12 h-full">
-
-                {/* HEADER */}
-                <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 dark:border-gray-800 shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h5 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">Performance Hub</h5>
-                            <h3 className="text-3xl font-black uppercase tracking-tighter text-gray-900 dark:text-white mt-1 italic">Business Reports</h3>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                                <Calendar className="w-4 h-4 text-brand-500" />
-                                <span className="text-xs font-bold text-gray-600 dark:text-gray-300 italic">Feb 2026</span>
-                            </div>
-                            <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm">
-                                <Search className="w-5 h-5" />
-                            </button>
-                        </div>
+        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
+            <PageHeader
+                title="Reports & Analytics"
+                subtitle="Analyze performance, revenue, and guest demographics."
+            >
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm h-10">
+                        <Calendar className="w-4 h-4 text-brand-500" />
+                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">February 2026</span>
                     </div>
+                    <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm">
+                        <Search className="w-5 h-5" />
+                    </button>
                 </div>
+            </PageHeader>
 
-                {/* CONTENT AREA */}
-                <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
+                <div className="grid grid-cols-12 gap-6 pb-12">
                     {/* MASTER LIST */}
-                    <div className="col-span-12 lg:col-span-8 overflow-y-auto no-scrollbar pb-6">
+                    <div className="col-span-12 lg:col-span-8">
                         {renderMasterList()}
                     </div>
 
                     {/* DETAIL PANEL */}
-                    <div className="col-span-12 lg:col-span-4 h-full sticky top-0">
+                    <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-0 h-fit">
                         {renderDetailPanel()}
                     </div>
                 </div>

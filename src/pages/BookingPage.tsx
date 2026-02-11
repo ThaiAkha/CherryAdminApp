@@ -15,6 +15,13 @@ import InputField from '../components/form/input/InputField';
 import TextArea from '../components/form/input/TextArea';
 import { Modal } from '../components/ui/modal';
 import { CalendarView } from '../components/booking/CalendarView';
+import Switch from '../components/form/switch/Switch';
+
+interface HotelLocation {
+    id: string;
+    name: string;
+    zone_id: string;
+}
 
 // --- CONFIGURATION ---
 const COUNTRY_PREFIXES = [
@@ -64,6 +71,9 @@ const BookingPage: React.FC = () => {
     }, []);
 
     const isAgency = userProfile?.role === 'agency';
+    const isElevated = userProfile?.role === 'admin' || userProfile?.role === 'manager';
+    const showB2BOptions = isAgency || isElevated;
+
     const commissionRate = isAgency ? (userProfile?.agency_commission_rate || 0) : 0;
 
     // --- STATE: FLOW ---
@@ -93,12 +103,17 @@ const BookingPage: React.FC = () => {
         phonePrefix: '+66',
         phoneNumber: '',
         customerNote: '',
-        agencyNote: ''
+        agencyNote: '',
+        hotelName: '',
+        pickupZone: 'outside'
     });
+
+    const [createAccountToggle, setCreateAccountToggle] = useState(false);
+    const [hotelLocations, setHotelLocations] = useState<HotelLocation[]>([]);
 
     // --- UPDATE FORM WHEN USER PROFILE IS LOADED ---
     useEffect(() => {
-        if (userProfile) {
+        if (userProfile && !showB2BOptions) {
             setFormData(prev => ({
                 ...prev,
                 fullName: userProfile.full_name,
@@ -107,7 +122,24 @@ const BookingPage: React.FC = () => {
             if (viewStep === 'auth') setViewStep('form');
         }
         if (isAgency) setPaymentMethod('agency');
-    }, [userProfile, isAgency, viewStep]);
+    }, [userProfile, isAgency, showB2BOptions, viewStep]);
+
+    useEffect(() => {
+        const fetchHotels = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('hotel_locations')
+                    .select('id, name, zone_id')
+                    .eq('is_active', true)
+                    .order('name');
+                if (error) throw error;
+                setHotelLocations(data || []);
+            } catch (err) {
+                console.error("Error fetching hotels:", err);
+            }
+        };
+        if (showB2BOptions) fetchHotels();
+    }, [showB2BOptions]);
 
     // CALCOLO PREZZI DINAMICO
     const currentBasePrice = session ? SESSION_INFO[session].basePrice : 0;
@@ -188,19 +220,41 @@ const BookingPage: React.FC = () => {
 
         try {
             let userId = userProfile?.id;
-            if (!userId) {
+            let guestUserId = null;
+
+            // --- ⚡ B2B FLOW (Agency or Admin) ---
+            if (showB2BOptions && createAccountToggle) {
+                const { data, error: functionError } = await supabase.functions.invoke('create-guest-user', {
+                    body: {
+                        email: formData.email,
+                        password: formData.password,
+                        name: formData.fullName,
+                        phone: formData.phonePrefix + formData.phoneNumber
+                    }
+                });
+
+                if (functionError || data.error) {
+                    throw new Error(functionError?.message || data.error || "Client account creation failed.");
+                }
+                guestUserId = data.userId;
+            }
+
+            // --- AUTH FOR STANDARD USERS (If not logged in) ---
+            if (!userId && !showB2BOptions) {
                 let authResponse;
                 if (authMode === 'login') {
                     authResponse = await authService.signIn(formData.email, formData.password);
+                    if (!authResponse?.user) throw new Error("Authentication failed.");
+                    userId = authResponse.user.id;
                 } else {
                     authResponse = await authService.signUp(formData.email, formData.password, formData.fullName);
+                    if (!authResponse?.user) throw new Error("Authentication failed.");
+                    userId = authResponse.user.id;
                 }
-                if (!authResponse?.user) throw new Error("Authentication failed.");
-                userId = authResponse.user.id;
             }
 
             const finalCustomerNote = isAgency
-                ? `AGENCY GUEST: ${formData.customerNote}`
+                ? `AGENCY REF: ${formData.customerNote}`
                 : formData.customerNote;
 
             const offset = selectedDate.getTimezoneOffset() * 60000;
@@ -208,7 +262,10 @@ const BookingPage: React.FC = () => {
             const dateStr = localDate.toISOString().split('T')[0];
 
             const payload = {
-                user_id: userId,
+                user_id: userId, // Booker ID (Agency/Admin/Standard)
+                guest_user_id: guestUserId, // If created via B2B option
+                guest_name: showB2BOptions ? formData.fullName : null,
+                guest_email: showB2BOptions ? formData.email : null,
                 session_id: session,
                 booking_date: dateStr,
                 pax_count: pax,
@@ -221,8 +278,8 @@ const BookingPage: React.FC = () => {
                 phone_number: formData.phoneNumber,
                 customer_note: finalCustomerNote,
                 agency_note: isAgency ? formData.agencyNote : '',
-                hotel_name: 'To be selected',
-                pickup_zone: 'walk-in'
+                hotel_name: showB2BOptions ? (formData.hotelName || 'Pickup Requested') : 'To be selected',
+                pickup_zone: showB2BOptions ? formData.pickupZone : 'walk-in'
             };
 
             const { error: bookingError } = await supabase.from('bookings').insert(payload);
@@ -458,7 +515,7 @@ const BookingPage: React.FC = () => {
                             <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[2.5rem] p-8 md:p-10 shadow-sm space-y-8">
                                 <div className="flex justify-between items-center">
                                     <h3 className="text-2xl font-black uppercase text-gray-900 dark:text-white italic">Information</h3>
-                                    {isAgency && <Badge variant="solid" color="info" size="sm">AGENCY PORTAL</Badge>}
+                                    {showB2BOptions && <Badge variant="solid" color="info" size="sm">{isAgency ? 'AGENCY PORTAL' : 'ADMIN BOOKING'}</Badge>}
                                 </div>
 
                                 <div className="space-y-6">
@@ -474,18 +531,62 @@ const BookingPage: React.FC = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InputField
-                                            label="Full Name"
+                                            label="Guest Full Name"
                                             value={formData.fullName}
                                             onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                                            disabled={!!userProfile}
+                                            disabled={!!userProfile && !showB2BOptions}
                                         />
                                         <InputField
-                                            label="Email Address"
+                                            label="Guest Email Address"
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            disabled={!!userProfile}
+                                            disabled={!!userProfile && !showB2BOptions}
                                         />
                                     </div>
+
+                                    {showB2BOptions && (
+                                        <div className="space-y-6">
+                                            <div className="bg-brand-50/30 dark:bg-brand-500/5 border border-brand-100 dark:border-brand-500/20 p-6 rounded-2xl">
+                                                <Switch
+                                                    label="Create App Account for Client"
+                                                    onChange={setCreateAccountToggle}
+                                                    defaultChecked={createAccountToggle}
+                                                />
+                                                {createAccountToggle && (
+                                                    <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                        <InputField
+                                                            label="Temporary Password"
+                                                            type="password"
+                                                            value={formData.password}
+                                                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                                            placeholder="e.g. ThaiAkha2026"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Pickup Hotel / Meeting Point</label>
+                                                <select
+                                                    value={formData.hotelName}
+                                                    onChange={e => {
+                                                        const hotel = hotelLocations.find(h => h.name === e.target.value);
+                                                        setFormData({
+                                                            ...formData,
+                                                            hotelName: e.target.value,
+                                                            pickupZone: hotel?.zone_id || 'outside'
+                                                        });
+                                                    }}
+                                                    className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 rounded-xl h-12 px-4 text-sm font-bold outline-none ring-0 focus:border-brand-500 transition-colors"
+                                                >
+                                                    <option value="">Select a location...</option>
+                                                    {hotelLocations.map(h => (
+                                                        <option key={h.id} value={h.name}>{h.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="flex flex-col md:flex-row gap-6">
                                         <div className="w-full md:w-48">
@@ -507,7 +608,7 @@ const BookingPage: React.FC = () => {
                                         />
                                     </div>
 
-                                    {!userProfile && <InputField label="Create Password" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Account security" />}
+                                    {!userProfile && !isAgency && <InputField label="Create Password" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Account security" />}
 
                                     <TextArea
                                         label={isAgency ? "Customer Reference" : "Dietary Notes"}

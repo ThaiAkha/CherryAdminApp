@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import PageGrid from '../components/layout/PageGrid';
+import PageHeader from '../components/layout/PageHeader';
 
 // --- TYPES ---
 interface Guest {
@@ -239,40 +240,46 @@ const StoreFront: React.FC<{ onNavigate: (p: string) => void }> = ({ onNavigate:
 
     // --- 4. RENDER ---
     return (
-        <PageContainer className="h-[calc(100vh-64px)]">
-            <PageGrid columns={12} className="h-full relative">
+        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
+            <PageHeader
+                title="Store Front"
+                subtitle="Manage on-site sales, merchandise, and guest tabs during classes."
+            >
+                <div className="flex items-center gap-3">
+                    <Input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="!h-10 !py-0 !px-4 text-sm font-bold w-auto rounded-xl"
+                    />
+                    <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl h-10 items-center">
+                        {(['morning', 'evening'] as const).map(s => (
+                            <button
+                                key={s}
+                                onClick={() => setSelectedSession(s)}
+                                className={cn(
+                                    "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all h-full flex items-center",
+                                    selectedSession === s
+                                        ? "bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm"
+                                        : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                )}
+                            >
+                                {s === 'morning' ? 'AM' : 'PM'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </PageHeader>
+
+            <PageGrid columns={12} className="flex-1 min-h-0 relative">
                 {loading && <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm"><div className="loader">Loading...</div></div>}
 
                 {/* --- LEFT PANE (Guests) --- */}
                 <div className="lg:col-span-3 flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                     <div className="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-gray-400" />
-                                <h6 className="uppercase tracking-widest text-xs font-bold text-gray-500">Guests</h6>
-                            </div>
-                            <Input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="!h-8 !py-0 !px-2 text-xs font-bold w-auto"
-                            />
-                        </div>
-                        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                            {(['morning', 'evening'] as const).map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => setSelectedSession(s)}
-                                    className={cn(
-                                        "flex-1 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all",
-                                        selectedSession === s
-                                            ? "bg-white dark:bg-gray-700 text-brand-600 dark:text-brand-400 shadow-sm"
-                                            : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                                    )}
-                                >
-                                    {s === 'morning' ? 'AM' : 'PM'}
-                                </button>
-                            ))}
+                        <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-gray-400" />
+                            <h6 className="uppercase tracking-widest text-xs font-bold text-gray-500">Guest List</h6>
                         </div>
                     </div>
 

@@ -23,8 +23,18 @@ export default function SignInForm() {
     setLoading(true);
     setError(null);
     try {
-      await signIn(email, password);
-      navigate("/"); // Redirect to dashboard on success
+      const response = await signIn(email, password);
+      if (response?.user) {
+        // We refetch/wait for profile in AuthContext, but here we can do a quick check
+        // for a better UX if we want, or just wait for the context to update.
+        // For now, let's keep it simple: if the user is an agency, they probably want the dashboard.
+        // However, we don't know the role yet.
+        // Let's use a small delay or a more robust way to check.
+
+        // Better: navigate to "/" and let a logic in "/" or App.tsx handle it, or 
+        // fetch individual profile here.
+        navigate("/");
+      }
     } catch (err: any) {
       console.error("Login failed:", err);
       setError(err.message || "Failed to sign in");

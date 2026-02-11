@@ -9,6 +9,7 @@ import ClassPicker, { SessionType } from '../components/common/ClassPicker';
 import PageContainer from '../components/layout/PageContainer';
 import InputField from '../components/form/input/InputField';
 import TextArea from '../components/form/input/TextArea';
+import PageHeader from '../components/layout/PageHeader';
 
 const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [globalDate, setGlobalDate] = useState(new Date().toISOString().split('T')[0]);
@@ -430,34 +431,20 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
 
     return (
         <PageContainer>
-            <div className="flex flex-col gap-6 w-full mx-auto pb-12 h-full">
+            <PageHeader
+                title="Booking Details"
+                subtitle="Manage and monitor daily cooking classes and prep lists."
+            >
+                <ClassPicker
+                    date={globalDate}
+                    onDateChange={setGlobalDate}
+                    session={globalSession}
+                    onSessionChange={setGlobalSession}
+                />
+            </PageHeader>
 
-                {/* HEADER */}
-                <div className="flex flex-col gap-4 pb-6 border-b border-gray-100 dark:border-gray-800 shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h5 className="text-gray-400 uppercase tracking-widest text-[10px] font-black">Control Center</h5>
-                            <h3 className="text-3xl font-black uppercase tracking-tighter text-gray-900 dark:text-white mt-1 italic">Booking Details</h3>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
-
-                        <ClassPicker
-                            date={globalDate}
-                            onDateChange={setGlobalDate}
-                            session={globalSession}
-                            onSessionChange={setGlobalSession}
-                            className="shadow-sm rounded-2xl border-gray-200 dark:border-gray-800"
-                        />
-                    </div>
-                </div>
-
-                {/* CONTENT AREA */}
-                <div className="flex-1 min-h-0 relative">
-                    {renderKitchenView()}
-                </div>
-
+            <div className="flex-1 min-h-0 relative">
+                {renderKitchenView()}
             </div>
         </PageContainer>
     );

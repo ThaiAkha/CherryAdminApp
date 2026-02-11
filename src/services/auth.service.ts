@@ -22,6 +22,10 @@ export interface UserProfile {
     agency_commission_rate?: number;
     agency_tax_id?: string;
     agency_phone?: string;
+    agency_commission_config?: {
+        mode: 'flat' | 'tiered';
+        tiers?: { min_pax: number; rate: number }[];
+    };
 
     // 👇 INDIRIZZO & LOGISTICA AGENZIA
     agency_address?: string;
@@ -104,7 +108,14 @@ export const authService = {
                     agency_company_name: companyName,
                     agency_tax_id: taxId,
                     agency_phone: phone,
-                    agency_commission_rate: 20, // Default 20% (Modificabile solo da Admin)
+                    agency_commission_rate: 20, // Default 20%
+                    agency_commission_config: {
+                        mode: 'tiered',
+                        tiers: [
+                            { min_pax: 1, rate: 20 },
+                            { min_pax: 10, rate: 25 }
+                        ]
+                    },
 
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'id' });
@@ -181,6 +192,7 @@ export const authService = {
           dietary_profile, allergies, preferred_spiciness_id,
           agency_company_name, agency_commission_rate,
           agency_tax_id, agency_phone,
+          agency_commission_config,
           agency_address, agency_city, agency_province, agency_country, agency_postal_code
         `)
                 .eq('id', user.id)
@@ -189,7 +201,20 @@ export const authService = {
             console.log("[AuthService] getCurrentUserProfile: DB fetch result:", data ? "Found" : "Null", error);
 
             if (error) throw error;
-            if (!data) return null;
+
+            // Se il record non esiste nel DB, ritorniamo un profilo minimale 
+            // per evitare redirect loop nel ProtectedRoute.
+            if (!data) {
+                console.warn("[AuthService] No DB profile found for user:", user.id);
+                return {
+                    id: user.id,
+                    email: user.email || '',
+                    full_name: user.user_metadata?.full_name || 'User',
+                    role: 'guest',
+                    dietary_profile: 'diet_regular',
+                    allergies: []
+                } as UserProfile;
+            }
 
             return {
                 id: data.id,
@@ -208,6 +233,7 @@ export const authService = {
                 agency_commission_rate: data.agency_commission_rate,
                 agency_tax_id: data.agency_tax_id,
                 agency_phone: data.agency_phone,
+                agency_commission_config: data.agency_commission_config,
                 agency_address: data.agency_address,
                 agency_city: data.agency_city,
                 agency_province: data.agency_province,

@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import PageGrid from '../components/layout/PageGrid';
+import PageHeader from '../components/layout/PageHeader';
+import ClassPicker, { SessionType } from '../components/common/ClassPicker';
 
 // --- TYPES ---
 interface LogisticsItem {
@@ -45,7 +47,6 @@ interface SessionSummary {
     unassigned_count: number;
 }
 
-// Added onNavigate to props to fix type error in App.tsx kha
 const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -55,7 +56,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
 
     // Selection State
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedSessionId, setSelectedSessionId] = useState('morning_class');
+    const [selectedSessionId, setSelectedSessionId] = useState<SessionType>('morning_class');
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
     // --- 1. DATA FETCHING ---
@@ -177,8 +178,20 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
     const selectedBooking = useMemo(() => items.find(i => i.id === selectedBookingId), [items, selectedBookingId]);
 
     return (
-        <PageContainer className="h-[calc(100vh-64px)]">
-            <PageGrid columns={12} className="h-full">
+        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
+            <PageHeader
+                title="Logistics Hub"
+                subtitle="Coordinate driver routes and manage passenger pickups in real-time."
+            >
+                <ClassPicker
+                    date={selectedDate}
+                    onDateChange={setSelectedDate}
+                    session={selectedSessionId}
+                    onSessionChange={setSelectedSessionId}
+                />
+            </PageHeader>
+
+            <PageGrid columns={12} className="flex-1 min-h-0">
 
                 {/* --- LEFT PANE (Sessions & Unassigned) --- */}
                 <div className="lg:col-span-3 flex flex-col h-full gap-6 overflow-hidden">
@@ -192,7 +205,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                             {upcomingSessions.map((s) => (
                                 <button
                                     key={`${s.date}_${s.session_id}`}
-                                    onClick={() => { setSelectedDate(s.date); setSelectedSessionId(s.session_id); }}
+                                    onClick={() => { setSelectedDate(s.date); setSelectedSessionId(s.session_id as SessionType); }}
                                     className={cn(
                                         "w-full p-3 rounded-xl border text-left transition-all group",
                                         selectedDate === s.date && selectedSessionId === s.session_id
@@ -263,10 +276,6 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                     <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 sticky top-0 z-20">
                         <div className="flex items-center gap-3">
                             <Badge variant="solid" color="primary">LIVE BOARD</Badge>
-                            <div className="flex flex-col">
-                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{selectedDate}</span>
-                                <span className="text-sm font-black uppercase text-gray-900 dark:text-white leading-none">{selectedSessionId.replace('_', ' ')}</span>
-                            </div>
                         </div>
                         <div className="flex gap-2">
                             <Button size="sm" variant="outline" startIcon={<Wand2 className="w-4 h-4" />}>Auto</Button>

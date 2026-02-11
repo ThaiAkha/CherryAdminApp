@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-
 import Button from '../components/ui/button/Button';
 import Badge from '../components/ui/badge/Badge';
 import Avatar from '../components/ui/avatar/Avatar';
@@ -8,14 +7,14 @@ import { cn } from '../lib/utils';
 import { authService } from '../services/auth.service';
 import {
     Map, MessageSquare, CheckCircle2, ArrowRight, Flag,
-    Sun, Moon, Calendar, Bus
+    Sun, Moon, Bus
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
+import PageHeader from '../components/layout/PageHeader';
 
 // --- CONFIGURAZIONE STATI ---
 type TransportStatus = 'waiting' | 'driver_en_route' | 'driver_arrived' | 'on_board' | 'dropped_off';
 
-// Configurazione visuale e logica degli stati
 const STATUS_CONFIG: Record<TransportStatus, { label: string; actionLabel: string; color: string; next: TransportStatus | null }> = {
     waiting: {
         label: 'WAITING',
@@ -49,7 +48,6 @@ const STATUS_CONFIG: Record<TransportStatus, { label: string; actionLabel: strin
     }
 };
 
-// Helper Data Locale (Fix Fuso Orario)
 const getLocalDate = () => {
     const d = new Date();
     const offset = d.getTimezoneOffset() * 60000;
@@ -57,18 +55,12 @@ const getLocalDate = () => {
 };
 
 const DriverDashboard: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
-
     const [userProfile, setUserProfile] = useState<any>(null);
     const [stops, setStops] = useState<any[]>([]);
-
-    // 🔒 Stato per la conferma "Doppio Click"
     const [confirmId, setConfirmId] = useState<string | null>(null);
-
-    // Filtri
-    const [activeDate, setActiveDate] = useState(getLocalDate());
+    const [activeDate] = useState(getLocalDate());
     const [sessionFilter, setSessionFilter] = useState<'morning_class' | 'evening_class'>('morning_class');
 
-    // --- INIT ---
     useEffect(() => {
         const initAuth = async () => {
             const profile = await authService.getCurrentUserProfile();
@@ -77,43 +69,37 @@ const DriverDashboard: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
         initAuth();
     }, []);
 
-    // --- DATA FETCHING (Polling 5s) ---
     const fetchRoute = async () => {
         if (!userProfile) return;
-        if (stops.length === 0)
-            // Loading state removed as unused variable
-            // setLoading(true);
+        try {
+            let query = supabase
+                .from('bookings')
+                .select(`
+                    internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_number, customer_note, session_id, route_order,
+                    pickup_driver_uid, transport_status,
+                    profiles: user_id(full_name, avatar_url)
+                `)
+                .eq('booking_date', activeDate)
+                .neq('status', 'cancelled');
 
-            try {
-                let query = supabase
-                    .from('bookings')
-                    .select(`
-internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_number, customer_note, session_id, route_order,
-  pickup_driver_uid, transport_status,
-  profiles: user_id(full_name, avatar_url)
-        `)
-                    .eq('booking_date', activeDate)
-                    .neq('status', 'cancelled');
-
-                // ✅ FIX LOGICA: Mostra assegnati a me OPPURE non assegnati (null)
-                if (userProfile.role !== 'admin') {
-                    query = query.or(`pickup_driver_uid.eq.${userProfile.id}, pickup_driver_uid.is.null`);
-                }
-
-                const { data } = await query
-                    .order('route_order', { ascending: true })
-                    .order('pickup_time', { ascending: true });
-
-                if (data) {
-                    setStops(data.map((b: any) => ({
-                        ...b,
-                        guest_name: b.profiles?.full_name || 'Guest',
-                        avatar_url: b.profiles?.avatar_url
-                    })));
-                }
-            } finally {
-                // setLoading(false);
+            if (userProfile.role !== 'admin') {
+                query = query.or(`pickup_driver_uid.eq.${userProfile.id}, pickup_driver_uid.is.null`);
             }
+
+            const { data } = await query
+                .order('route_order', { ascending: true })
+                .order('pickup_time', { ascending: true });
+
+            if (data) {
+                setStops(data.map((b: any) => ({
+                    ...b,
+                    guest_name: b.profiles?.full_name || 'Guest',
+                    avatar_url: b.profiles?.avatar_url
+                })));
+            }
+        } catch (error) {
+            console.error("Error fetching route:", error);
+        }
     };
 
     useEffect(() => {
@@ -121,8 +107,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
         const interval = setInterval(fetchRoute, 25000);
         return () => clearInterval(interval);
     }, [activeDate, userProfile]);
-
-    // --- HANDLERS ---
 
     const handleClickAction = (stop: any) => {
         if (confirmId === stop.internal_id) {
@@ -140,14 +124,12 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
 
         if (!nextStatus) return;
 
-        // 1. Aggiorna DB (Assegna anche il driver se era null)
         await supabase.from('bookings').update({
-            transport_status: nextStatus,
+            transport_status: nextStatus as string,
             actual_pickup_time: nextStatus === 'on_board' ? new Date().toISOString() : null,
-            pickup_driver_uid: userProfile.id // Auto-claim
+            pickup_driver_uid: userProfile.id
         }).eq('internal_id', stop.internal_id);
 
-        // 2. REAZIONE A CATENA
         if (nextStatus === 'on_board') {
             const currentOrder = stop.route_order || 0;
             const nextStop = stops.find(s =>
@@ -166,7 +148,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
         fetchRoute();
     };
 
-    // Azione Globale Inizio
     const handleStartRoute = async () => {
         const firstStop = visibleStops.find(s => s.transport_status === 'waiting');
         if (firstStop) {
@@ -176,7 +157,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
         }
     };
 
-    // Azione Globale Fine
     const handleArriveDestination = async () => {
         if (!confirm("Finish all active rides?")) return;
         const onboardIds = visibleStops.filter(s => s.transport_status === 'on_board').map(s => s.internal_id);
@@ -192,49 +172,35 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
     const openMap = (hotel: string) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel + " Chiang Mai")}`, '_blank');
     const handleWhatsApp = (phone: string) => window.open(`https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=Sawasdee%20kha%20Driver%20is%20at%20lobby`, '_blank');
 
-    // --- UI HELPERS ---
     const visibleStops = useMemo(() => stops.filter(s => s.session_id === sessionFilter), [stops, sessionFilter]);
     const completedPax = visibleStops.filter(s => s.transport_status === 'on_board' || s.transport_status === 'dropped_off').reduce((sum, s) => sum + s.pax_count, 0);
     const totalPax = visibleStops.reduce((sum, s) => sum + s.pax_count, 0);
 
     const isRouteStarted = visibleStops.some(s => s.transport_status !== 'waiting');
-    // Mostra pulsante finale se c'è qualcuno a bordo
     const showFinalButton = visibleStops.some(s => s.transport_status === 'on_board');
 
     return (
         <div className="min-h-screen bg-black pb-48 font-sans text-white">
-            {/* HEADER (Glass Style) */}
-            <div className="sticky top-0 z-50 bg-[#121212]/90 backdrop-blur-xl border-b border-white/10 px-4 pt-6 pb-4 shadow-2xl">
-                <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h4 className="text-xl font-black italic uppercase leading-none text-white">
-                            Driver <span className="text-brand-500">Console</span>
-                        </h4>
-
-                        <div className="relative flex items-center gap-2 mt-1">
-                            <span className="text-white/60 text-xs font-mono">{activeDate}</span>
-                            <input
-                                type="date"
-                                value={activeDate}
-                                onChange={(e) => setActiveDate(e.target.value)}
-                                className="w-5 h-5 opacity-0 absolute cursor-pointer z-10"
-                            />
-                            <Calendar className="w-3 h-3 text-white/30" />
-                        </div>
-                    </div>
-
-                    <div className="text-right bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+            <PageHeader
+                title="Driver Console"
+                subtitle={`Operational Route: ${activeDate}`}
+                className="px-6 pt-8 mb-6 border-b border-white/5 pb-6 sticky top-0 z-50 bg-black/90 backdrop-blur-xl"
+            >
+                <div className="flex flex-col items-end gap-3">
+                    <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-2">
                         <span className="text-2xl font-mono font-black text-brand-500 leading-none">{completedPax}</span>
                         <span className="text-sm font-bold text-white/40">/ {totalPax} Pax</span>
                     </div>
                 </div>
+            </PageHeader>
 
-                <div className="flex bg-white/10 p-1 rounded-xl">
+            <div className="px-4 mb-6">
+                <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                     <button
                         onClick={() => setSessionFilter('morning_class')}
                         className={cn(
                             "flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                            sessionFilter === 'morning_class' ? "bg-white text-black shadow-lg" : "text-white/40"
+                            sessionFilter === 'morning_class' ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white/60"
                         )}
                     >
                         <Sun className="w-4 h-4" /> AM
@@ -243,7 +209,7 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                         onClick={() => setSessionFilter('evening_class')}
                         className={cn(
                             "flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                            sessionFilter === 'evening_class' ? "bg-[#121212] text-white shadow-lg border border-white/10" : "text-white/40"
+                            sessionFilter === 'evening_class' ? "bg-[#121212] text-white shadow-lg border border-white/10" : "text-white/40 hover:text-white/60"
                         )}
                     >
                         <Moon className="w-4 h-4" /> PM
@@ -251,10 +217,7 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                 </div>
             </div>
 
-            {/* LISTA FERMATE */}
             <PageContainer className="p-4 space-y-6">
-
-                {/* Tasto Start Globale */}
                 {!isRouteStarted && visibleStops.length > 0 && (
                     <Button
                         variant="primary"
@@ -269,15 +232,11 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
 
                 {visibleStops.map((stop, index) => {
                     const statusCfg = STATUS_CONFIG[stop.transport_status as TransportStatus];
-                    const isDone = stop.transport_status === 'dropped_off'; // Completato
-                    const isOnBoard = stop.transport_status === 'on_board'; // A bordo
-
-                    // Attivo se: è il prossimo in lista, o è in corso, o è a bordo
+                    const isDone = stop.transport_status === 'dropped_off';
+                    const isOnBoard = stop.transport_status === 'on_board';
                     const isActiveStep = stop.transport_status !== 'waiting' || (stop.transport_status === 'waiting' && index === 0 && !isRouteStarted) || (stop.transport_status === 'waiting' && stops[index - 1]?.transport_status === 'on_board');
-
                     const isConfirming = confirmId === stop.internal_id;
 
-                    // CARD COMPATTA (Finito)
                     if (isDone) {
                         return (
                             <div key={stop.internal_id} className="flex items-center justify-between p-4 bg-[#1a1a1a] border border-white/5 rounded-2xl opacity-50 grayscale">
@@ -292,7 +251,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                         );
                     }
 
-                    // CARD ATTIVA (Glass Style)
                     return (
                         <div key={stop.internal_id} className={cn(
                             "relative rounded-[2rem] border overflow-hidden transition-all duration-500",
@@ -300,8 +258,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                                 isActiveStep ? "bg-[#1a1a1a] border-white/10 shadow-2xl" :
                                     "bg-black/40 border-white/5 opacity-60"
                         )}>
-
-                            {/* Header Info */}
                             <div className={cn("flex justify-between items-stretch border-b", isOnBoard ? "bg-green-500/10 border-green-500/20" : "bg-white/5 border-white/5")}>
                                 <div className="px-5 py-4 flex items-center gap-3">
                                     <span className="font-mono text-2xl font-black tracking-tighter text-white">{stop.pickup_time?.slice(0, 5)}</span>
@@ -331,7 +287,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                                     </button>
                                 </div>
 
-                                {/* ACTION BUTTON */}
                                 {(isActiveStep || isOnBoard) && (
                                     <button
                                         onClick={() => handleClickAction(stop)}
@@ -354,7 +309,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                     );
                 })}
 
-                {/* Tasto Fine Corsa */}
                 {showFinalButton && (
                     <div className="pt-8">
                         <Button
@@ -368,7 +322,6 @@ internal_id, status, pax_count, hotel_name, pickup_zone, pickup_time, phone_numb
                         </Button>
                     </div>
                 )}
-
             </PageContainer>
         </div>
     );

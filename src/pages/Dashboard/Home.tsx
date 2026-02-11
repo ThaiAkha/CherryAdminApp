@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import { useAuth } from "../../context/AuthContext";
 import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
 import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
 import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
@@ -7,6 +10,18 @@ import PageMeta from "../../components/common/PageMeta";
 import PageContainer from "../../components/layout/PageContainer";
 
 export default function Home() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'agency') {
+      navigate('/agency-dashboard', { replace: true });
+    } else if (user?.role === 'driver') {
+      navigate('/driver', { replace: true });
+    }
+    // Add other roles if needed
+  }, [user, navigate]);
+
   return (
     <>
       <PageMeta
