@@ -1,0 +1,50 @@
+{
+    "snapshot_metadata": {
+        "name": "Thai Akha Kitchen Admin App",
+        "version": "1.2.0-system-4.8",
+        "tag": "v1.2-system-4.8",
+        "timestamp": "2026-02-11T21:10:00Z",
+        "status": "System 4.8 Compliant / B2B Refined"
+    },
+    "core_dependencies": {
+        "@supabase/supabase-js": "^2.95.3",
+        "react": "^19.0.0",
+        "react-router": "^7.1.5",
+        "lucide-react": "^0.563.0",
+        "tailwind-merge": "^3.0.1"
+    },
+    "implemented_features": {
+        "agency_b2b": {
+            "status": "completed",
+            "sub_features": [
+                "account_creation_toggle",
+                "temporary_password_generation",
+                "hotel_location_dropdown",
+                "agency_invoice_payment_method"
+            ]
+        },
+        "admin_b2b": {
+            "status": "completed",
+            "description": "Admins/Managers can now use B2B booking flow with client account creation."
+        },
+        "authentication_fixes": {
+            "status": "verified",
+            "fix_details": "Automatic profile creation in Edge Function to prevent login redirect loops."
+        }
+    },
+    "edge_functions": {
+        "create-guest-user": {
+            "purpose": "Creates Auth user + DB profile",
+            "deployed": true
+        },
+        "send-booking-confirmation": {
+            "purpose": "3-way email routing (Admin, Agency, Guest)",
+            "deployed": true
+        }
+    },
+    "routing_config": {
+        "agency_home": "/agency-dashboard",
+        "admin_home": "/booking-overview",
+        "default_home": "/"
+    }
+}

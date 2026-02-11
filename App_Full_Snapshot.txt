@@ -1,0 +1,76 @@
+THAI AKHA KITCHEN - FULL APP SNAPSHOT
+====================================
+Snapshot ID: v1.2-system-4.8 (B2B Refined)
+Date: 2026-02-11
+Description: Upgraded to System 4.8. Explicit B2B guest fields, structured payload, and commission tracking.
+
+1. PROJECT STRUCTURE
+--------------------
+.
+├── src/
+│   ├── components/
+│   │   ├── auth/                (SignInForm, SignUpForm)
+│   │   ├── common/              (Badges, Buttons, Inputs, ClassPicker)
+│   │   ├── layout/              (PageContainer, PageHeader, PageGrid)
+│   │   └── form/                (Switch, UserMetaCard)
+│   ├── context/
+│   │   └── AuthContext.tsx      (Profile state & persistence)
+│   ├── lib/
+│   │   ├── supabase.ts          (Client configuration)
+│   │   └── utils.ts             (Tailwind merge/clsx)
+│   ├── pages/
+│   │   ├── BookingPage.tsx      (B2B logic, Hotel Selection, Client Account Creation)
+│   │   ├── AgencyDashboard.tsx  (Commission tracking, Invoice preview, Booking management)
+│   │   ├── Dashboard/Home.tsx   (Role-based initial redirection)
+│   │   ├── BookingOverview.tsx  (Admin view of all bookings)
+│   │   └── Logistics.tsx        (Pickup and hotel management)
+│   ├── services/
+│   │   └── auth.service.ts      (Login/Signup/Profile Logic with Resilience)
+│   └── App.tsx                  (Routing & Role Protection)
+├── supabase/
+│   └── functions/
+│       ├── create-guest-user/   (Auth User + DB Profile Creation)
+│       └── send-booking-confirmation/ (3-way notification system)
+└── package.json                 (Dependencies & Scripts)
+
+2. CORE CONFIGURATION (package.json)
+------------------------------------
+- React 19 (Vite)
+- tailwindcss 4.0
+- lucide-react
+- react-router 7.1
+- @supabase/supabase-js 2.95
+
+3. KEY LOGIC: B2B FLOW
+----------------------
+The B2B flow allows Agencies and Admins to book classes while optionally creating client accounts.
+- Flag: `showB2BOptions` (Active for 'agency', 'admin', 'manager')
+- Account Creation: Invokes `create-guest-user` Edge Function.
+- Pickup: Populated from `hotel_locations` database table.
+- Emailing: `send-booking-confirmation` handles:
+    - Admin: Alert
+    - Agency: Receipt/Voucher
+    - Guest: Welcome Email (if account created)
+
+4. LOGIN STABILITY FIXES
+------------------------
+- Problem: Guest accounts created via B2B were missing a 'profiles' record, causing a redirect loop.
+- Solution: 
+    - `create-guest-user` Edge Function now performs an `upsert` in `public.profiles`.
+    - `auth.service.ts` includes a fallback profile for temporary synchronization delays.
+    - `Home.tsx` handles automatic redirection based on role (Agency -> Dashboard).
+
+5. DATABASE SCHEMA RECAP
+------------------------
+Table: `bookings`
+- `user_id`: ID of the person who placed the booking (Agency/Admin/User).
+- `guest_user_id`: ID of the client (if account was created).
+- `guest_name` / `guest_email`: Explicitly stored for B2B visibility.
+- `payment_method`: 'agency_invoice' for Monthly B2B billing.
+
+Table: `profiles`
+- Roles: 'admin', 'manager', 'agency', 'driver', 'staff', 'guest'.
+- Metadata: `agency_company_name`, `agency_commission_rate`.
+
+====================================
+END OF SNAPSHOT

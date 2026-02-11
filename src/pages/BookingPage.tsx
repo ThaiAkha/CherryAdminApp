@@ -99,6 +99,8 @@ const BookingPage: React.FC = () => {
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
+        guestName: '',
+        guestEmail: '',
         password: '',
         phonePrefix: '+66',
         phoneNumber: '',
@@ -226,9 +228,9 @@ const BookingPage: React.FC = () => {
             if (showB2BOptions && createAccountToggle) {
                 const { data, error: functionError } = await supabase.functions.invoke('create-guest-user', {
                     body: {
-                        email: formData.email,
+                        email: formData.guestEmail || formData.email,
                         password: formData.password,
-                        name: formData.fullName,
+                        name: formData.guestName || formData.fullName,
                         phone: formData.phonePrefix + formData.phoneNumber
                     }
                 });
@@ -264,12 +266,13 @@ const BookingPage: React.FC = () => {
             const payload = {
                 user_id: userId, // Booker ID (Agency/Admin/Standard)
                 guest_user_id: guestUserId, // If created via B2B option
-                guest_name: showB2BOptions ? formData.fullName : null,
-                guest_email: showB2BOptions ? formData.email : null,
+                guest_name: showB2BOptions ? (formData.guestName || formData.fullName) : formData.fullName,
+                guest_email: showB2BOptions ? (formData.guestEmail || formData.email) : formData.email,
                 session_id: session,
                 booking_date: dateStr,
                 pax_count: pax,
                 total_price: finalPrice,
+                commission_amount: isAgency ? discountAmount : 0,
                 applied_commission_rate: commissionRate,
                 payment_method: isAgency ? 'agency_invoice' : (paymentMethod === 'card' ? 'credit_card' : 'pay_on_arrival'),
                 payment_status: isAgency ? 'pending_invoice' : 'pending',
@@ -531,18 +534,39 @@ const BookingPage: React.FC = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InputField
-                                            label="Guest Full Name"
+                                            label={showB2BOptions ? "Booker Full Name" : "Guest Full Name"}
                                             value={formData.fullName}
                                             onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                                             disabled={!!userProfile && !showB2BOptions}
                                         />
                                         <InputField
-                                            label="Guest Email Address"
+                                            label={showB2BOptions ? "Booker Email" : "Guest Email Address"}
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
                                             disabled={!!userProfile && !showB2BOptions}
                                         />
                                     </div>
+
+                                    {showB2BOptions && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-brand-50/20 dark:bg-brand-500/5 rounded-3xl border border-brand-100/50 dark:border-brand-500/10">
+                                            <div className="md:col-span-2 flex items-center gap-2 mb-2">
+                                                <User className="size-4 text-brand-600" />
+                                                <h4 className="text-sm font-black uppercase tracking-wider text-brand-600 italic">Effective Guest Details</h4>
+                                            </div>
+                                            <InputField
+                                                label="Passenger Full Name"
+                                                placeholder="Enter guest name"
+                                                value={formData.guestName}
+                                                onChange={e => setFormData({ ...formData, guestName: e.target.value })}
+                                            />
+                                            <InputField
+                                                label="Passenger Email (Opt)"
+                                                placeholder="guest@example.com"
+                                                value={formData.guestEmail}
+                                                onChange={e => setFormData({ ...formData, guestEmail: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
 
                                     {showB2BOptions && (
                                         <div className="space-y-6">

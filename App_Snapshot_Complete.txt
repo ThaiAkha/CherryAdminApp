@@ -1,0 +1,23 @@
+# APP SNAPSHOT: B2B FLOW & LOGIN STABILITY
+Tag: v1.1-b2b-restored
+Date: 2026-02-11
+
+## Summary
+Complete implementation of the Agency & Admin B2B booking flow, including automated account creation, email notifications, and fixes for login redirect loops.
+
+## Core Features
+- **B2B Booking Portal**: Restored "Create Client Account" toggle and Hotel Selection for both Agencies and Admins.
+- **Login Resilience**: Fixed the login redirect loop by ensuring a profile record is created immediately upon guest account creation via Edge Functions.
+- **Automated Emails**: Implemented a 3-way notification system (Admin Alert, Agency Receipt/Voucher, Guest Welcome Email).
+- **Agency UX**: Implemented automatic redirection to `/agency-dashboard` upon login for agency users.
+
+## Key Files
+- `src/pages/BookingPage.tsx`: Core booking logic and B2B UI options.
+- `supabase/functions/create-guest-user/index.ts`: Secure account and profile creation.
+- `supabase/functions/send-booking-confirmation/index.ts`: Multi-party email routing.
+- `src/services/auth.service.ts`: Resilient profile fetching.
+- `src/pages/Dashboard/Home.tsx`: Role-based initial routing.
+
+## Database Updates
+- `bookings` table: New columns `guest_user_id`, `guest_name`, and `guest_email`.
+- `profiles` table: Used for role-based permissions and agency billing information.
