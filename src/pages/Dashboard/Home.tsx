@@ -14,12 +14,7 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.role === 'agency') {
-      navigate('/agency-dashboard', { replace: true });
-    } else if (user?.role === 'driver') {
-      navigate('/driver', { replace: true });
-    }
-    // Add other roles if needed
+    // Redirection logic removed to restore home page visibility
   }, [user, navigate]);
 
   return (

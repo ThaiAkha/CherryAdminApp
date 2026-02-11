@@ -235,9 +235,16 @@ const BookingPage: React.FC = () => {
                     }
                 });
 
-                if (functionError || data.error) {
-                    throw new Error(functionError?.message || data.error || "Client account creation failed.");
+                // Spesso data è null se c'è un errore HTTP (non-2xx)
+                const errorMessage = functionError?.message || data?.error;
+                if (errorMessage) {
+                    throw new Error(errorMessage);
                 }
+
+                if (!data?.userId) {
+                    throw new Error("Client account creation failed (No user ID returned).");
+                }
+
                 guestUserId = data.userId;
             }
 

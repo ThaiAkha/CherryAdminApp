@@ -183,8 +183,8 @@ export const authService = {
                 return null;
             }
 
-            // 👇 SELECT COMPLETA: Include colonne Agenzia [Source 72, 1147]
-            console.log("[AuthService] getCurrentUserProfile: Fetching profile from DB...");
+            // 👇 SELECT COMPLETA: Include colonne Agenzia
+            console.log("[AuthService] getCurrentUserProfile: Fetching profile with full selection...");
             const { data, error } = await supabase
                 .from('profiles')
                 .select(`
@@ -192,15 +192,49 @@ export const authService = {
           dietary_profile, allergies, preferred_spiciness_id,
           agency_company_name, agency_commission_rate,
           agency_tax_id, agency_phone,
-          agency_commission_config,
           agency_address, agency_city, agency_province, agency_country, agency_postal_code
         `)
                 .eq('id', user.id)
                 .maybeSingle();
 
-            console.log("[AuthService] getCurrentUserProfile: DB fetch result:", data ? "Found" : "Null", error);
+            if (error) {
+                console.error("[AuthService] Full select failed, trying minimal select...", error);
 
-            if (error) throw error;
+                // Try a minimal select to see if it's a column mismatch issue
+                // Aggiungiamo avatar_url anche qui per sicurezza
+                const { data: minData, error: minError } = await supabase
+                    .from('profiles')
+                    .select('id, full_name, email, role, avatar_url')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (minError) {
+                    console.error("[AuthService] Minimal select also failed (RLS?):", minError);
+                } else if (!minData) {
+                    console.warn("[AuthService] Minimal select returned no data (Record missing in DB).");
+                } else {
+                    console.log("[AuthService] Minimal select succeeded, returning partial profile.");
+                    return {
+                        id: minData.id,
+                        full_name: minData.full_name,
+                        email: minData.email,
+                        role: minData.role as any,
+                        avatar_url: minData.avatar_url,
+                        dietary_profile: 'diet_regular',
+                        allergies: []
+                    } as UserProfile;
+                }
+
+                // Final fallback
+                return {
+                    id: user.id,
+                    email: user.email || '',
+                    full_name: user.user_metadata?.full_name || 'User',
+                    role: 'guest',
+                    dietary_profile: 'diet_regular',
+                    allergies: []
+                } as UserProfile;
+            }
 
             // Se il record non esiste nel DB, ritorniamo un profilo minimale 
             // per evitare redirect loop nel ProtectedRoute.
@@ -215,6 +249,8 @@ export const authService = {
                     allergies: []
                 } as UserProfile;
             }
+
+            console.log("[AuthService] Profile fetched successfully:", data.full_name, data.role);
 
             return {
                 id: data.id,
@@ -233,7 +269,6 @@ export const authService = {
                 agency_commission_rate: data.agency_commission_rate,
                 agency_tax_id: data.agency_tax_id,
                 agency_phone: data.agency_phone,
-                agency_commission_config: data.agency_commission_config,
                 agency_address: data.agency_address,
                 agency_city: data.agency_city,
                 agency_province: data.agency_province,
@@ -243,7 +278,7 @@ export const authService = {
             } as UserProfile;
 
         } catch (err) {
-            console.error("Auth profile fetch error kha:", err);
+            console.error("Auth profile fetch error (CAT):", err);
             return null;
         }
     },

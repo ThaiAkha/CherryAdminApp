@@ -15,34 +15,59 @@ serve(async (req) => {
     }
 
     try {
-        // 2. Crea il client Supabase con permessi ADMIN (Service Role)
-        // Questo permette di creare utenti senza essere loggati come loro.
         const supabaseAdmin = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 3. Leggi i dati inviati dalla App React
         const { email, password, fullName, name, phone } = await req.json()
 
         if (!email || !password) {
-            throw new Error("Email and password are required")
+            return new Response(
+                JSON.stringify({ error: "Email and password are required" }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
         }
 
-        // 4. Crea l'utente "Ghost" (Auto-confirm per permettere login immediato)
+        console.log(`[EdgeFunc] Attempting to create user: ${email}`);
         const { data, error } = await supabaseAdmin.auth.admin.createUser({
             email: email,
             password: password,
-            email_confirm: true, // ✅ L'utente è subito attivo
+            email_confirm: true,
             user_metadata: {
                 full_name: name || fullName,
                 phone: phone
             }
         })
 
-        if (error) throw error
+        if (error) {
+            // 🟢 FIX: Se l'utente esiste già, cercalo e restituisci il suo ID invece di lanciare errore
+            if (error.message.includes("already been registered")) {
+                console.log("[EdgeFunc] User exists, fetching ID...");
+                const { data: existingUser } = await supabaseAdmin
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', email)
+                    .maybeSingle(); // Usa maybeSingle per evitare errori se non trovato
 
-        // 5. Crea il PROFILO nel DB (Necessario per evitare loop di redirect al login)
+                if (existingUser) {
+                    console.log(`[EdgeFunc] Existing user found: ${existingUser.id}`);
+                    return new Response(
+                        JSON.stringify({ userId: existingUser.id, isNew: false }),
+                        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+                    )
+                }
+            }
+
+            console.error("[EdgeFunc] Admin createUser error:", error.message);
+            return new Response(
+                JSON.stringify({ error: `Auth Error: ${error.message}` }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
+        }
+
+        console.log(`[EdgeFunc] User created: ${data.user.id}. Inserting profile...`);
+
         const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .upsert({
@@ -55,26 +80,23 @@ serve(async (req) => {
             }, { onConflict: 'id' })
 
         if (profileError) {
-            console.error("Profile creation failed:", profileError.message)
-            // Procediamo comunque? No, meglio fallire per capire il problema o loggare pesantemente.
+            console.error("[EdgeFunc] Profile creation failed:", profileError.message);
+            return new Response(
+                JSON.stringify({ error: `User created but Profile failed: ${profileError.message}`, userId: data.user.id }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+            )
         }
 
-        // 6. Ritorna l'ID del nuovo utente all'Agenzia
+        console.log("[EdgeFunc] Success!");
         return new Response(
             JSON.stringify({ userId: data.user.id }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 200
-            }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         )
 
     } catch (error) {
         return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                status: 400
-            }
+            JSON.stringify({ error: `System Error: ${error.message}` }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         )
     }
 })

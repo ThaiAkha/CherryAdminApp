@@ -74,3 +74,4 @@ Table: `profiles`
 
 ====================================
 END OF SNAPSHOT
+controlla settaggio app admin, non riesco ad eseguier login

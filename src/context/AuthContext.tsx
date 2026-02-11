@@ -60,10 +60,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("[Auth] onAuthStateChange:", event);
-            setSession(session);
             if (session) {
+                setLoading(true); // Prevent race condition between SignIn and ProtectedRoute
+                setSession(session);
                 await refreshProfile();
             } else {
+                setSession(null);
                 setUser(null);
             }
             setLoading(false);
@@ -79,11 +81,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await refreshProfile();
     };
 
+    const signIn = async (email: string, password: string) => {
+        const response = await authService.signIn(email, password);
+        if (response?.session) {
+            await refreshProfile();
+        }
+        return response;
+    };
+
     const value = {
         user,
         session,
         loading,
-        signIn: authService.signIn,
+        signIn,
         signOut: authService.signOut,
         updateProfile,
         changePassword: authService.changePassword,
