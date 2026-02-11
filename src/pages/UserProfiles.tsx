@@ -1,27 +1,29 @@
-import PageBreadcrumb from "../components/common/PageBreadCrumb";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
+import UserSecurityCard from "../components/UserProfile/UserSecurityCard";
 import PageMeta from "../components/common/PageMeta";
+import PageContainer from "../components/layout/PageContainer";
 
 export default function UserProfiles() {
   return (
     <>
       <PageMeta
-        title="React.js Profile Dashboard | TailAdmin - Next.js Admin Dashboard Template"
-        description="This is React.js Profile Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
+        title="Profile Dashboard | Cherry Admin"
+        description="Manage your profile, company details, and security settings."
       />
-      <PageBreadcrumb pageTitle="Profile" />
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-        <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
-          Profile
-        </h3>
-        <div className="space-y-6">
-          <UserMetaCard />
-          <UserInfoCard />
-          <UserAddressCard />
+      <PageContainer>
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-theme-xl dark:border-gray-800 dark:bg-white/[0.03] lg:p-8">
+          <div className="space-y-8">
+            <UserMetaCard />
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
+              <UserInfoCard />
+              <UserAddressCard />
+            </div>
+            <UserSecurityCard />
+          </div>
         </div>
-      </div>
+      </PageContainer>
     </>
   );
 }

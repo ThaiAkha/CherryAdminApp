@@ -3,28 +3,23 @@ import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
-import Videos from "./pages/UiElements/Videos";
-import Images from "./pages/UiElements/Images";
-import Alerts from "./pages/UiElements/Alerts";
-import Badges from "./pages/UiElements/Badges";
-import Avatars from "./pages/UiElements/Avatars";
-import Buttons from "./pages/UiElements/Buttons";
 import Calendar from "./pages/Calendar";
-import BasicTables from "./pages/Tables/BasicTables";
-import FormElements from "./pages/Forms/FormElements";
 import AppLayout from "./layout/AppLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
+import BookingPage from "./pages/BookingPage";
 import BookingOverview from "./pages/BookingOverview";
-import AdminLogistics from "./pages/admin/AdminLogistics";
-import AdminStoreFront from "./pages/admin/AdminStoreFront";
-import AdminStoreManager from "./pages/admin/AdminStoreManager";
-import AdminDriverDashboard from "./pages/admin/AdminDriverDashboard";
-import AdminMarketRunner from "./pages/admin/AdminMarketRunner";
+import Logistics from "./pages/Logistics";
+import DriverDashboard from "./pages/DriverDashboard";
+import MarketRunner from "./pages/MarketRunner";
+import StoreFront from "./pages/StoreFront";
+import StoreManager from "./pages/StoreManager";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import MarketShop from "./pages/MarketShop";
+import Reports from "./pages/Reports";
+
 
 export default function App() {
   return (
@@ -36,36 +31,25 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
+              <Route path="/booking" element={<BookingPage />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/market-shop" element={<MarketShop />} />
 
-              {/* Forms */}
-              <Route path="/form-elements" element={<FormElements />} />
-
-              {/* Tables */}
-              <Route path="/basic-tables" element={<BasicTables />} />
-
-              {/* Ui Elements */}
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/avatars" element={<Avatars />} />
-              <Route path="/badge" element={<Badges />} />
-              <Route path="/buttons" element={<Buttons />} />
-              <Route path="/images" element={<Images />} />
-              <Route path="/videos" element={<Videos />} />
 
 
 
               {/* Admin Pages (Migrated to AppLayout) */}
               <Route path="/booking-overview" element={<BookingOverview onNavigate={() => { }} />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/agency-dashboard" element={<AgencyDashboard />} />
-              <Route path="/admin/logistics" element={<AdminLogistics onNavigate={() => { }} />} />
-              <Route path="/admin/store" element={<AdminStoreFront onNavigate={() => { }} />} />
-              <Route path="/admin/store-manager" element={<AdminStoreManager />} />
-              <Route path="/admin/driver" element={<AdminDriverDashboard onNavigate={() => { }} />} />
-              <Route path="/admin/market-runner" element={<AdminMarketRunner />} />
+              <Route path="/logistics" element={<Logistics onNavigate={() => { }} />} />
+              <Route path="/driver" element={<DriverDashboard onNavigate={() => { }} />} />
+              <Route path="/market-runner" element={<MarketRunner />} />
+              <Route path="/store-front" element={<StoreFront onNavigate={() => { }} />} />
+              <Route path="/store-manager" element={<StoreManager />} />
             </Route>
           </Route>
 
@@ -76,7 +60,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
+      </Router >
     </>
   );
 }

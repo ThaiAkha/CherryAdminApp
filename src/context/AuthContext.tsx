@@ -10,6 +10,8 @@ interface AuthContextType {
     signIn: typeof authService.signIn;
     signOut: typeof authService.signOut;
     updateProfile: typeof authService.updateProfile;
+    changePassword: typeof authService.changePassword;
+    uploadAvatar: typeof authService.uploadAvatar;
     refreshProfile: () => Promise<void>;
 }
 
@@ -84,6 +86,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn: authService.signIn,
         signOut: authService.signOut,
         updateProfile,
+        changePassword: authService.changePassword,
+        uploadAvatar: authService.uploadAvatar,
         refreshProfile
     };
 

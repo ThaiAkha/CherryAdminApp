@@ -236,5 +236,31 @@ export const authService = {
             .eq('id', userId);
 
         if (error) throw error;
+    },
+
+    /** 🔒 CHANGE PASSWORD */
+    async changePassword(password: string) {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+    },
+
+    /** 🖼️ UPLOAD AVATAR */
+    async uploadAvatar(userId: string, file: File) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}-${Math.random()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        await this.updateProfile(userId, { avatar_url: publicUrl });
+        return publicUrl;
     }
 };
