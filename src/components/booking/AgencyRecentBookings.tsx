@@ -49,9 +49,6 @@ export default function AgencyRecentBookings() {
         }
     };
 
-    const getSessionLabel = (id: string) => {
-        return id === 'morning_class' ? 'Morning' : 'Evening';
-    };
 
     const getStatusColor = (status: string): "success" | "warning" | "error" | "light" => {
         return status === 'paid' ? 'success' : 'warning';
