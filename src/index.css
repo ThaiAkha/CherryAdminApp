@@ -267,9 +267,9 @@
     display: none;
   }
 
-  -ms-overflow-style: none;
+  -ms-overflow-style:none;
   /* IE and Edge */
-  scrollbar-width: none;
+  scrollbar-width:none;
   /* Firefox */
 }
 
@@ -283,7 +283,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+    @apply bg-gray-200 rounded-full;
+  }
+
+  .dark &::-webkit-scrollbar-thumb {
+    background-color: #344054;
   }
 }
 
@@ -402,7 +406,7 @@
 
 .stocks-slider-outer .swiper-button-next,
 .stocks-slider-outer .swiper-button-prev {
-  @apply static ! mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 !text-gray-700 transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark: !text-gray-400 dark:hover: !text-white/90;
+  @apply static !mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 !text-gray-700 transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark: !text-gray-400 dark:hover: !text-white/90;
 }
 
 .stocks-slider-outer .swiper-button-next.swiper-button-disabled,
@@ -590,7 +594,7 @@ span.flatpickr-weekday,
   @apply right-0;
 }
 
-@media (max-width: 639px) {
+@media (max-width:639px) {
   .flatpickr-calendar.static {
     left: auto !important;
     right: 0 !important;
@@ -624,7 +628,7 @@ span.flatpickr-weekday,
 }
 
 .fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active: !border-gray-200 active: !bg-transparent active: !shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800 !;
+  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active: !border-gray-200 active: !bg-transparent active: !shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800;
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
@@ -868,11 +872,11 @@ span.flatpickr-weekday,
 }
 
 .simplebar-scrollbar::before {
-  @apply !bg-gray-200 !rounded-full dark: !bg-gray-700 !opacity-100;
+  @apply !bg-gray-200 !rounded-full !opacity-100;
 }
 
 .dark .simplebar-scrollbar::before {
-  @apply !bg-gray-700;
+  background-color: #344054 !important;
 }
 
 .simplebar-scrollbar.simplebar-visible:before {
