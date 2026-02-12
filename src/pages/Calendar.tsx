@@ -7,6 +7,8 @@ import {
     ChevronLeft, ChevronRight, Sun, Moon, Lock, AlertTriangle
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
+import Badge from '../components/ui/badge/Badge';
+import { usePageHeader } from '../context/PageHeaderContext';
 
 // --- INTERFACES ---
 interface SessionStatus {
@@ -36,6 +38,15 @@ const Calendar: React.FC = () => {
     const [viewDate, setViewDate] = useState(new Date());
     const [availability, setAvailability] = useState<Record<string, DayData>>({});
     const [loading, setLoading] = useState(true);
+
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        setPageHeader(
+            `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}`,
+            'Manage session availability, capacity, and holiday closures.'
+        );
+    }, [viewDate]);
 
     // Modal State
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -225,13 +236,10 @@ const Calendar: React.FC = () => {
         <PageContainer className="h-[calc(100vh-64px)] overflow-hidden">
             <div className="w-full h-full flex flex-col font-sans select-none bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
 
-                {/* HEADER */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+                {/* HEADER (Toolbar) */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0 mb-6">
                     <div>
-                        <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Admin Console</span>
-                        <h3 className="text-3xl font-black italic uppercase leading-none mt-2">
-                            {MONTHS[viewDate.getMonth()]} <span className="text-brand-600 dark:text-brand-400">{viewDate.getFullYear()}</span>
-                        </h3>
+                        <Badge variant="solid" color="primary">OPERATIONAL CALENDAR</Badge>
                     </div>
 
                     <div className="flex gap-2">
@@ -293,7 +301,7 @@ const Calendar: React.FC = () => {
                                         {/* Morning */}
                                         <div className={cn("flex items-center justify-between px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border transition-colors",
                                             data.morning.status === 'OPEN' ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" :
-                                                data.morning.status === 'FULL' ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" :
+                                                data.morning.status === 'FULL' ? "bg-error-50 text-error-700 border-error-100 dark:bg-error-900/20 dark:text-error-400 dark:border-error-900/30" :
                                                     "bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700",
                                             data.morning.isLocked && "opacity-50"
                                         )}>
@@ -304,7 +312,7 @@ const Calendar: React.FC = () => {
                                         {/* Evening */}
                                         <div className={cn("flex items-center justify-between px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border transition-colors",
                                             data.evening.status === 'OPEN' ? "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30" :
-                                                data.evening.status === 'FULL' ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" :
+                                                data.evening.status === 'FULL' ? "bg-error-50 text-error-700 border-error-100 dark:bg-error-900/20 dark:text-error-400 dark:border-error-900/30" :
                                                     "bg-gray-50 text-gray-400 border-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700",
                                             data.evening.isLocked && "opacity-50"
                                         )}>
@@ -392,7 +400,7 @@ const Calendar: React.FC = () => {
                         <div className="grid grid-cols-1 gap-2">
                             <button
                                 onClick={handleQuickClose}
-                                className="w-full py-3 rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 font-bold text-sm hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                                className="w-full py-3 rounded-xl border-error-200 dark:border-error-900/30 bg-error-50 dark:bg-error-900/10 text-error-600 dark:text-error-400 font-bold text-sm hover:bg-error-100 dark:hover:bg-error-900/20 transition-colors"
                             >
                                 Close Entire Day
                             </button>

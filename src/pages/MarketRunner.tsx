@@ -9,6 +9,7 @@ import {
     Utensils, Wheat, Egg, Apple, Fish, Beef, Soup, LayoutGrid
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
+import { usePageHeader } from '../context/PageHeaderContext';
 
 interface ShoppingItem {
     id: string;
@@ -56,6 +57,16 @@ const MarketRunner: React.FC = () => {
     const [items, setItems] = useState<ShoppingItem[]>([]);
     const [contacts, setContacts] = useState<Record<string, ShopContact>>({});
     const [activeTab, setActiveTab] = useState('all');
+
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        if (activeRun) {
+            setPageHeader('Market Runner', `Shopping list for ${activeRun.run_date}`);
+        } else {
+            setPageHeader('Market Runner', 'No active shopping list found.');
+        }
+    }, [activeRun]);
 
     // --- 1. DATA FETCHING ---
     const fetchData = async () => {
@@ -225,41 +236,35 @@ const MarketRunner: React.FC = () => {
     return (
         <PageContainer className="h-[calc(100vh-64px)] overflow-hidden">
             <div className="flex flex-col h-full relative bg-gray-50 dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
-                {/* ================= STICKY HEADER ================= */}
-                <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center shadow-sm">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Badge variant="solid" color="success" size="sm" className="shadow-sm animate-pulse">ACTIVE RUN</Badge>
-                            <span className="text-gray-400 text-[10px] font-mono uppercase tracking-widest">{activeRun.run_date}</span>
-                        </div>
-                        <h3 className="text-lg font-black italic uppercase leading-none tracking-tighter text-gray-900 dark:text-white">Market Shop</h3>
-                    </div>
-                    <div className="text-right">
-                        <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest mb-0.5">Live Total</div>
-                        <div className="text-2xl font-mono font-black text-brand-600 dark:text-brand-400 leading-none">
-                            {liveTotal.toLocaleString()} <span className="text-[10px] font-sans text-gray-400 font-normal">THB</span>
-                        </div>
-                    </div>
-                </header>
 
-                {/* ================= DYNAMIC SHOP TABS ================= */}
-                <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 py-3 overflow-x-auto no-scrollbar">
-                    <div className="flex gap-2 px-4">
-                        {shopTabs.map((tab) => (
-                            <button
-                                key={tab.value}
-                                onClick={() => setActiveTab(tab.value)}
-                                className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap transition-all border",
-                                    activeTab === tab.value
-                                        ? "bg-brand-600 text-white border-brand-600 shadow-brand-glow"
-                                        : "bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                                )}
-                            >
-                                {tab.icon}
-                                {tab.label}
-                            </button>
-                        ))}
+                {/* ================= TOTALS & TABS TOOLBAR ================= */}
+                <div className="shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 mb-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                            {shopTabs.map((tab) => (
+                                <button
+                                    key={tab.value}
+                                    onClick={() => setActiveTab(tab.value)}
+                                    className={cn(
+                                        "flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase whitespace-nowrap transition-all border",
+                                        activeTab === tab.value
+                                            ? "bg-brand-600 text-white border-brand-600 shadow-brand-glow"
+                                            : "bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                                    )}
+                                >
+                                    {tab.icon}
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="text-right flex items-center gap-4 bg-gray-50 dark:bg-gray-800 px-4 py-2 rounded-2xl border border-gray-100 dark:border-gray-700 ml-auto">
+                            <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest text-left">
+                                Live<br />Total
+                            </div>
+                            <div className="text-2xl font-mono font-black text-brand-600 dark:text-brand-400 leading-none">
+                                {liveTotal.toLocaleString()} <span className="text-[10px] font-sans text-gray-400 font-normal">THB</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

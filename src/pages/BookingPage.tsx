@@ -530,9 +530,9 @@ const BookingPage: React.FC = () => {
 
                                 <div className="space-y-6">
                                     {isAgency && (
-                                        <div className="bg-blue-50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/20 p-4 rounded-2xl flex items-center gap-4">
-                                            <Building2 className="w-8 h-8 text-blue-500" />
-                                            <p className="text-xs text-blue-700 dark:text-blue-400 leading-normal">
+                                        <div className="bg-brand-50 dark:bg-brand-500/5 border border-brand-100 dark:border-brand-500/20 p-4 rounded-2xl flex items-center gap-4">
+                                            <Building2 className="w-8 h-8 text-brand-600" />
+                                            <p className="text-xs text-brand-700 dark:text-brand-400 leading-normal">
                                                 Booking for: <strong>{userProfile?.agency_company_name}</strong><br />
                                                 Invoiced monthly at {commissionRate}% commission.
                                             </p>

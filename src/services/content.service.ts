@@ -52,7 +52,7 @@ export const contentService = {
                 .from('site_metadata')
                 .select('header_badge, header_icon, header_title_main, header_title_highlight, page_description, hero_image_url')
                 .eq('page_slug', slug)
-                .single();
+                .maybeSingle();
 
             if (error || !data) return null;
 

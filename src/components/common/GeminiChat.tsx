@@ -78,8 +78,8 @@ const GeminiChat: React.FC = () => {
                             >
                                 <div
                                     className={`max-w-[80%] p-3 rounded-lg text-sm ${msg.role === 'user'
-                                            ? 'bg-primary text-white rounded-br-none'
-                                            : 'bg-white dark:bg-boxdark border border-stroke dark:border-strokedark text-black dark:text-white rounded-bl-none shadow-sm'
+                                        ? 'bg-primary text-white rounded-br-none'
+                                        : 'bg-white dark:bg-boxdark border border-stroke dark:border-strokedark text-black dark:text-white rounded-bl-none shadow-sm'
                                         }`}
                                 >
                                     <p className="whitespace-pre-wrap">{msg.text}</p>
@@ -117,7 +117,7 @@ const GeminiChat: React.FC = () => {
 
                     {/* Error Display */}
                     {(chatError || liveError) && (
-                        <div className="px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs border-t border-red-200 dark:border-red-800">
+                        <div className="px-4 py-2 bg-error-100 dark:bg-error-900/20 text-error-600 dark:text-error-400 text-xs border-t border-error-200 dark:border-error-800">
                             {chatError || liveError}
                         </div>
                     )}
@@ -128,10 +128,10 @@ const GeminiChat: React.FC = () => {
                             <button
                                 onClick={toggleLive}
                                 className={`p-2 rounded-full transition-colors ${isLiveActive
-                                        ? 'bg-red-500 text-white animate-pulse'
-                                        : isLiveConnecting
-                                            ? 'bg-yellow-500 text-white'
-                                            : 'bg-gray-100 dark:bg-meta-4 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-opacity-80'
+                                    ? 'bg-brand-500 text-white animate-pulse'
+                                    : isLiveConnecting
+                                        ? 'bg-yellow-500 text-white'
+                                        : 'bg-gray-100 dark:bg-meta-4 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-opacity-80'
                                     }`}
                                 title={isLiveActive ? "Stop Voice Chat" : "Start Voice Chat"}
                             >

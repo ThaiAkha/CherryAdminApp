@@ -165,15 +165,13 @@ export const authService = {
         try {
             console.log("[AuthService] getCurrentUserProfile: Calling getUser() with timeout...");
 
-            // Create a promise that rejects after 5 seconds
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("getUser timed out")), 5000)
-            );
 
             // Race between getUser and timeout
             const { data: { user } } = await Promise.race([
                 supabase.auth.getUser(),
-                timeoutPromise
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("getUser timed out")), 10000)
+                )
             ]) as any;
 
             console.log("[AuthService] getCurrentUserProfile: getUser result:", user?.id);
@@ -283,9 +281,10 @@ export const authService = {
         }
     },
 
-    /** 
-     * 💾 UPDATE PROFILE 
-     * Aggiornamento generico dei dati profilo
+    /**
+     * 💾 UPDATE PROFILE
+     * Aggiornamento generico dei dati profilo (Avatar, Nome, ecc.)
+     * Necessario per UserSettings e Agency Dashboard.
      */
     async updateProfile(userId: string, updates: Partial<UserProfile>) {
         const { error } = await supabase

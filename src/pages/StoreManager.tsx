@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import PageGrid from '../components/layout/PageGrid';
+import { usePageHeader } from '../context/PageHeaderContext';
 
 // --- TYPES ---
 interface Product {
@@ -54,6 +55,11 @@ const StoreManager: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        setPageHeader('Inventory Manager', 'Manage products, stock levels, and shop categories.');
+    }, []);
 
     // Editor State
     const [editingProduct, setEditingProduct] = useState<Product>(EMPTY_PRODUCT);
@@ -370,7 +376,7 @@ const StoreManager: React.FC = () => {
                                         type="checkbox"
                                         checked={editingProduct.is_visible_online}
                                         onChange={(e) => setEditingProduct({ ...editingProduct, is_visible_online: e.target.checked })}
-                                        className="accent-blue-600 size-4"
+                                        className="accent-brand-600 size-4"
                                     />
                                 </div>
                             </div>

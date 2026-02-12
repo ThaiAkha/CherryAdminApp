@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import PageGrid from '../components/layout/PageGrid';
-import PageHeader from '../components/layout/PageHeader';
+import { usePageHeader } from '../context/PageHeaderContext';
 import ClassPicker, { SessionType } from '../components/common/ClassPicker';
 
 // --- TYPES ---
@@ -47,6 +47,8 @@ interface SessionSummary {
     unassigned_count: number;
 }
 
+import { contentService } from '../services/content.service';
+
 const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -58,6 +60,20 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedSessionId, setSelectedSessionId] = useState<SessionType>('morning_class');
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        const loadMetadata = async () => {
+            const meta = await contentService.getPageMetadata('logistics');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Logistics Console', meta.description || '');
+            } else {
+                setPageHeader('Logistics Console', 'Manage driver assignments, routes, and guest pickups.');
+            }
+        };
+        loadMetadata();
+    }, [setPageHeader]);
 
     // --- 1. DATA FETCHING ---
     const fetchData = async () => {
@@ -173,23 +189,28 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
         setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
     };
 
-    // --- 3. COMPONENTS ---
+    // --- 3. RENDER ---
     const unassignedItems = useMemo(() => items.filter(i => !i.pickup_driver_uid), [items]);
     const selectedBooking = useMemo(() => items.find(i => i.id === selectedBookingId), [items, selectedBookingId]);
 
     return (
-        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
-            <PageHeader
-                title="Logistics Hub"
-                subtitle="Coordinate driver routes and manage passenger pickups in real-time."
-            >
-                <ClassPicker
-                    date={selectedDate}
-                    onDateChange={setSelectedDate}
-                    session={selectedSessionId}
-                    onSessionChange={setSelectedSessionId}
-                />
-            </PageHeader>
+        <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col">
+            <div className="mb-6">
+                <div className="flex items-center gap-3">
+                    <ClassPicker
+                        date={selectedDate}
+                        onDateChange={setSelectedDate}
+                        session={selectedSessionId}
+                        onSessionChange={(s) => setSelectedSessionId(s as SessionType)}
+                    />
+                    <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm">
+                        <Search className="w-5 h-5" />
+                    </button>
+                    <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm ml-auto">
+                        <Printer className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
 
             <PageGrid columns={12} className="flex-1 min-h-0">
 
@@ -201,7 +222,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                         <div className="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
                             <h6 className="uppercase tracking-widest text-xs font-bold text-gray-500">Upcoming Sessions</h6>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar">
                             {upcomingSessions.map((s) => (
                                 <button
                                     key={`${s.date}_${s.session_id}`}
@@ -238,7 +259,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                             <h6 className="uppercase tracking-widest text-xs font-bold text-gray-500">Staging Area</h6>
                             <Badge variant="light" color="light">{unassignedItems.length}</Badge>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                        <div className="flex-1 overflow-y-auto p-3 space-y-2 no-scrollbar">
                             {unassignedItems.map(item => (
                                 <div
                                     key={item.id}
@@ -271,7 +292,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
 
                 {/* --- CENTER PANE (Live Board) --- */}
                 <div className="lg:col-span-6 flex flex-col h-full bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden relative">
-                    {loading && <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm"><div className="loader">Loading...</div></div>}
+                    {loading && <div className="absolute inset-0 bg-white/50 dark:bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm"><div className="loader font-black uppercase text-xs tracking-widest animate-pulse">Syncing...</div></div>}
 
                     <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-gray-900 sticky top-0 z-20">
                         <div className="flex items-center gap-3">
@@ -283,7 +304,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
+                    <div className="flex-1 overflow-x-auto overflow-y-hidden p-4 no-scrollbar">
                         <div className="flex h-full gap-4 min-w-max">
                             {drivers.map(driver => {
                                 const driverItems = items.filter(i => i.pickup_driver_uid === driver.id);
@@ -296,7 +317,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                                                 <div className="text-[10px] text-gray-500 font-mono">{driverItems.length} Stops</div>
                                             </div>
                                         </div>
-                                        <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50/50 dark:bg-gray-900/50">
+                                        <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-gray-50/50 dark:bg-gray-900/50 no-scrollbar">
                                             {driverItems.map(item => (
                                                 <div
                                                     key={item.id}
@@ -363,7 +384,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
                                 {/* Driver Assignment */}
                                 <div className="space-y-3">
                                     <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Route Assignment</h6>
@@ -373,7 +394,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                                             <select
                                                 value={selectedBooking.pickup_driver_uid || ''}
                                                 onChange={(e) => handleAssign(selectedBooking.id, e.target.value || null)}
-                                                className="w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-10 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white"
+                                                className="w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-10 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 dark:border-gray-700 dark:text-white dark:bg-gray-900"
                                             >
                                                 <option value="">-- UNASSIGNED --</option>
                                                 {drivers.map(d => <option key={d.id} value={d.id}>{d.full_name}</option>)}
@@ -444,7 +465,7 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                                 <Button
                                     type="submit"
                                     variant="primary"
-                                    className="w-full justify-center"
+                                    className="w-full justify-center shadow-lg"
                                     startIcon={<Save className="w-4 h-4" />}
                                     disabled={isSaving}
                                 >

@@ -10,7 +10,9 @@ import {
     Sun, Moon, Bus
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
-import PageHeader from '../components/layout/PageHeader';
+import { usePageHeader } from '../context/PageHeaderContext';
+import { contentService } from '../services/content.service';
+import PageMeta from '../components/common/PageMeta';
 
 // --- CONFIGURAZIONE STATI ---
 type TransportStatus = 'waiting' | 'driver_en_route' | 'driver_arrived' | 'on_board' | 'dropped_off';
@@ -25,7 +27,7 @@ const STATUS_CONFIG: Record<TransportStatus, { label: string; actionLabel: strin
     driver_en_route: {
         label: 'EN ROUTE',
         actionLabel: 'I AM HERE',
-        color: 'bg-blue-600 text-white hover:bg-blue-700',
+        color: 'bg-brand-600 text-white hover:bg-brand-700',
         next: 'driver_arrived'
     },
     driver_arrived: {
@@ -60,6 +62,20 @@ const DriverDashboard: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
     const [confirmId, setConfirmId] = useState<string | null>(null);
     const [activeDate] = useState(getLocalDate());
     const [sessionFilter, setSessionFilter] = useState<'morning_class' | 'evening_class'>('morning_class');
+
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        const loadMetadata = async () => {
+            const meta = await contentService.getPageMetadata('driver-dashboard');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Driver Console', meta.description || `Operational Route for ${activeDate}`);
+            } else {
+                setPageHeader('Driver Console', `Operational Route for ${activeDate}`);
+            }
+        };
+        loadMetadata();
+    }, [activeDate, setPageHeader]);
 
     useEffect(() => {
         const initAuth = async () => {
@@ -180,150 +196,152 @@ const DriverDashboard: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
     const showFinalButton = visibleStops.some(s => s.transport_status === 'on_board');
 
     return (
-        <div className="min-h-screen bg-black pb-48 font-sans text-white">
-            <PageHeader
-                title="Driver Console"
-                subtitle={`Operational Route: ${activeDate}`}
-                className="px-6 pt-8 mb-6 border-b border-white/5 pb-6 sticky top-0 z-50 bg-black/90 backdrop-blur-xl"
-            >
-                <div className="flex flex-col items-end gap-3">
-                    <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 flex items-center gap-2">
-                        <span className="text-2xl font-mono font-black text-brand-500 leading-none">{completedPax}</span>
-                        <span className="text-sm font-bold text-white/40">/ {totalPax} Pax</span>
-                    </div>
-                </div>
-            </PageHeader>
+        <>
+            <PageMeta
+                title="Driver Console | Thai Akha Kitchen"
+                description={`Operational Route for ${activeDate}`}
+            />
+            <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-black p-0 overflow-hidden">
+                <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
 
-            <div className="px-4 mb-6">
-                <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-                    <button
-                        onClick={() => setSessionFilter('morning_class')}
-                        className={cn(
-                            "flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                            sessionFilter === 'morning_class' ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white/60"
-                        )}
-                    >
-                        <Sun className="w-4 h-4" /> AM
-                    </button>
-                    <button
-                        onClick={() => setSessionFilter('evening_class')}
-                        className={cn(
-                            "flex-1 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                            sessionFilter === 'evening_class' ? "bg-[#121212] text-white shadow-lg border border-white/10" : "text-white/40 hover:text-white/60"
-                        )}
-                    >
-                        <Moon className="w-4 h-4" /> PM
-                    </button>
-                </div>
-            </div>
-
-            <PageContainer className="p-4 space-y-6">
-                {!isRouteStarted && visibleStops.length > 0 && (
-                    <Button
-                        variant="primary"
-                        size="md"
-                        onClick={handleStartRoute}
-                        className="w-full h-16 text-lg font-black shadow-[0_0_40px_rgba(227,31,51,0.4)] animate-pulse bg-brand-600 hover:bg-brand-700 text-white"
-                    >
-                        <Bus className="w-5 h-5 mr-2" />
-                        Start Pickup Route
-                    </Button>
-                )}
-
-                {visibleStops.map((stop, index) => {
-                    const statusCfg = STATUS_CONFIG[stop.transport_status as TransportStatus];
-                    const isDone = stop.transport_status === 'dropped_off';
-                    const isOnBoard = stop.transport_status === 'on_board';
-                    const isActiveStep = stop.transport_status !== 'waiting' || (stop.transport_status === 'waiting' && index === 0 && !isRouteStarted) || (stop.transport_status === 'waiting' && stops[index - 1]?.transport_status === 'on_board');
-                    const isConfirming = confirmId === stop.internal_id;
-
-                    if (isDone) {
-                        return (
-                            <div key={stop.internal_id} className="flex items-center justify-between p-4 bg-[#1a1a1a] border border-white/5 rounded-2xl opacity-50 grayscale">
-                                <div className="flex items-center gap-4">
-                                    <CheckCircle2 className="w-6 h-6 text-green-500" />
-                                    <div>
-                                        <div className="text-white font-bold line-through decoration-white/30">{stop.guest_name}</div>
-                                        <div className="text-[10px] text-white/40 uppercase">{stop.hotel_name}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    }
-
-                    return (
-                        <div key={stop.internal_id} className={cn(
-                            "relative rounded-[2rem] border overflow-hidden transition-all duration-500",
-                            isOnBoard ? "bg-green-900/10 border-green-500/30 shadow-lg" :
-                                isActiveStep ? "bg-[#1a1a1a] border-white/10 shadow-2xl" :
-                                    "bg-black/40 border-white/5 opacity-60"
-                        )}>
-                            <div className={cn("flex justify-between items-stretch border-b", isOnBoard ? "bg-green-500/10 border-green-500/20" : "bg-white/5 border-white/5")}>
-                                <div className="px-5 py-4 flex items-center gap-3">
-                                    <span className="font-mono text-2xl font-black tracking-tighter text-white">{stop.pickup_time?.slice(0, 5)}</span>
-                                    <Badge variant="light" color="light" className="text-[9px] px-2 h-5 bg-white/5 text-white/60">{stop.pickup_zone?.toUpperCase()}</Badge>
-                                </div>
-                                <div className="px-5 flex items-center justify-center bg-black/20 border-l border-white/5 min-w-[4rem]">
-                                    <span className={cn("text-xl font-black", isOnBoard ? "text-green-400" : "text-white")}>{stop.pax_count}p</span>
-                                </div>
-                            </div>
-
-                            <div className="p-5 space-y-5">
-                                <div className="flex items-center gap-4">
-                                    <Avatar src={stop.avatar_url} alt={stop.guest_name} size="medium" />
-                                    <div className="min-w-0">
-                                        <h5 className="truncate leading-none mb-1 text-lg font-bold text-white">{stop.guest_name}</h5>
-                                        {stop.customer_note ? <p className="text-[10px] text-yellow-500 italic truncate font-bold">⚠️ "{stop.customer_note}"</p> : <p className="text-[10px] text-white/30 font-bold uppercase">No Notes</p>}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button onClick={() => openMap(stop.hotel_name)} className="flex-1 flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-black/40 hover:bg-white/5 transition-all text-left group">
-                                        <Map className="w-5 h-5 text-blue-400 shrink-0 group-hover:scale-110 transition-transform" />
-                                        <span className="text-sm font-bold truncate text-white/90">{stop.hotel_name}</span>
-                                    </button>
-                                    <button onClick={() => handleWhatsApp(stop.phone_number)} className="size-14 rounded-xl bg-green-900/20 border border-green-500/30 flex items-center justify-center text-green-500 hover:bg-green-900/40 transition-all">
-                                        <MessageSquare className="w-6 h-6" />
-                                    </button>
-                                </div>
-
-                                {(isActiveStep || isOnBoard) && (
-                                    <button
-                                        onClick={() => handleClickAction(stop)}
-                                        className={cn(
-                                            "w-full h-16 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-sm transition-all shadow-lg active:scale-95",
-                                            isConfirming
-                                                ? "bg-red-500 text-white border-red-400 animate-pulse"
-                                                : statusCfg.color
-                                        )}
-                                    >
-                                        {isConfirming ? (
-                                            <>CONFIRM ACTION?</>
-                                        ) : (
-                                            <>{statusCfg.actionLabel} {isOnBoard ? <CheckCircle2 className="w-5 h-5 animate-bounce" /> : <ArrowRight className="w-5 h-5 animate-bounce" />}</>
-                                        )}
-                                    </button>
+                    {/* --- TOOLBAR --- */}
+                    <div className="p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-20 mb-6 flex items-center justify-between">
+                        <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl border border-gray-200 dark:border-white/10 w-48">
+                            <button
+                                onClick={() => setSessionFilter('morning_class')}
+                                className={cn(
+                                    "flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                                    sessionFilter === 'morning_class' ? "bg-white dark:bg-white text-black shadow-sm" : "text-gray-400 dark:text-white/40 hover:text-white/60"
                                 )}
-                            </div>
+                            >
+                                <Sun className="w-3 h-3" /> AM
+                            </button>
+                            <button
+                                onClick={() => setSessionFilter('evening_class')}
+                                className={cn(
+                                    "flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                                    sessionFilter === 'evening_class' ? "bg-white dark:bg-white text-black shadow-sm" : "text-gray-400 dark:text-white/40 hover:text-white/60"
+                                )}
+                            >
+                                <Moon className="w-3 h-3" /> PM
+                            </button>
                         </div>
-                    );
-                })}
 
-                {showFinalButton && (
-                    <div className="pt-8">
-                        <Button
-                            variant="primary"
-                            size="md"
-                            onClick={handleArriveDestination}
-                            className="w-full shadow-xl h-16 rounded-2xl text-lg font-black"
-                        >
-                            <Flag className="w-6 h-6 mr-2" />
-                            Arrive at Destination
-                        </Button>
+                        <div className="bg-brand-50 dark:bg-brand-500/10 px-4 py-2 rounded-xl border border-brand-100 dark:border-brand-500/20 flex items-center gap-3">
+                            <span className="text-xl font-mono font-black text-brand-600 dark:text-brand-400 leading-none">{completedPax}</span>
+                            <span className="text-[10px] font-bold text-brand-400 dark:text-white/40 uppercase tracking-widest">/ {totalPax} PAX</span>
+                        </div>
                     </div>
-                )}
+
+                    <div className="px-4 space-y-6">
+                        {!isRouteStarted && visibleStops.length > 0 && (
+                            <Button
+                                variant="primary"
+                                size="md"
+                                onClick={handleStartRoute}
+                                className="w-full h-16 text-lg font-black shadow-[0_0_40px_rgba(227,31,51,0.4)] animate-pulse bg-brand-600 hover:bg-brand-700 text-white"
+                            >
+                                <Bus className="w-5 h-5 mr-2" />
+                                Start Pickup Route
+                            </Button>
+                        )}
+
+                        {visibleStops.map((stop, index) => {
+                            const statusCfg = STATUS_CONFIG[stop.transport_status as TransportStatus];
+                            const isDone = stop.transport_status === 'dropped_off';
+                            const isOnBoard = stop.transport_status === 'on_board';
+                            const isActiveStep = stop.transport_status !== 'waiting' || (stop.transport_status === 'waiting' && index === 0 && !isRouteStarted) || (stop.transport_status === 'waiting' && stops[index - 1]?.transport_status === 'on_board');
+                            const isConfirming = confirmId === stop.internal_id;
+
+                            if (isDone) {
+                                return (
+                                    <div key={stop.internal_id} className="flex items-center justify-between p-4 bg-[#1a1a1a] border border-white/5 rounded-2xl opacity-50 grayscale">
+                                        <div className="flex items-center gap-4">
+                                            <CheckCircle2 className="w-6 h-6 text-green-500" />
+                                            <div>
+                                                <div className="text-white font-bold line-through decoration-white/30">{stop.guest_name}</div>
+                                                <div className="text-[10px] text-white/40 uppercase">{stop.hotel_name}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div key={stop.internal_id} className={cn(
+                                    "relative rounded-[2rem] border overflow-hidden transition-all duration-500",
+                                    isOnBoard ? "bg-green-900/10 border-green-500/30 shadow-lg" :
+                                        isActiveStep ? "bg-[#1a1a1a] border-white/10 shadow-2xl" :
+                                            "bg-black/40 border-white/5 opacity-60"
+                                )}>
+                                    <div className={cn("flex justify-between items-stretch border-b", isOnBoard ? "bg-green-500/10 border-green-500/20" : "bg-white/5 border-white/5")}>
+                                        <div className="px-5 py-4 flex items-center gap-3">
+                                            <span className="font-mono text-2xl font-black tracking-tighter text-white">{stop.pickup_time?.slice(0, 5)}</span>
+                                            <Badge variant="light" color="light" className="text-[9px] px-2 h-5 bg-white/5 text-white/60">{stop.pickup_zone?.toUpperCase()}</Badge>
+                                        </div>
+                                        <div className="px-5 flex items-center justify-center bg-black/20 border-l border-white/5 min-w-[4rem]">
+                                            <span className={cn("text-xl font-black", isOnBoard ? "text-green-400" : "text-white")}>{stop.pax_count}p</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 space-y-5">
+                                        <div className="flex items-center gap-4">
+                                            <Avatar src={stop.avatar_url} alt={stop.guest_name} size="medium" />
+                                            <div className="min-w-0">
+                                                <h5 className="truncate leading-none mb-1 text-lg font-bold text-white">{stop.guest_name}</h5>
+                                                {stop.customer_note ? <p className="text-[10px] text-yellow-500 italic truncate font-bold">⚠️ "{stop.customer_note}"</p> : <p className="text-[10px] text-white/30 font-bold uppercase">No Notes</p>}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button onClick={() => openMap(stop.hotel_name)} className="flex-1 flex items-center gap-3 p-4 rounded-xl border border-white/10 bg-black/40 hover:bg-white/5 transition-all text-left group">
+                                                <Map className="w-5 h-5 text-brand-400 shrink-0 group-hover:scale-110 transition-transform" />
+                                                <span className="text-sm font-bold truncate text-white/90">{stop.hotel_name}</span>
+                                            </button>
+                                            <button onClick={() => handleWhatsApp(stop.phone_number)} className="size-14 rounded-xl bg-green-900/20 border border-green-500/30 flex items-center justify-center text-green-500 hover:bg-green-900/40 transition-all">
+                                                <MessageSquare className="w-6 h-6" />
+                                            </button>
+                                        </div>
+
+                                        {(isActiveStep || isOnBoard) && (
+                                            <button
+                                                onClick={() => handleClickAction(stop)}
+                                                className={cn(
+                                                    "w-full h-16 rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-sm transition-all shadow-lg active:scale-95",
+                                                    isConfirming
+                                                        ? "bg-red-500 text-white border-red-400 animate-pulse"
+                                                        : statusCfg.color
+                                                )}
+                                            >
+                                                {isConfirming ? (
+                                                    <>CONFIRM ACTION?</>
+                                                ) : (
+                                                    <>{statusCfg.actionLabel} {isOnBoard ? <CheckCircle2 className="w-5 h-5 animate-bounce" /> : <ArrowRight className="w-5 h-5 animate-bounce" />}</>
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {showFinalButton && (
+                            <div className="pt-8">
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    onClick={handleArriveDestination}
+                                    className="w-full shadow-xl h-16 rounded-2xl text-lg font-black"
+                                >
+                                    <Flag className="w-6 h-6 mr-2" />
+                                    Arrive at Destination
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </PageContainer>
-        </div>
+        </>
     );
 };
 

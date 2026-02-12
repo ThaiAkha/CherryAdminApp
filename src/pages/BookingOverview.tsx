@@ -7,9 +7,12 @@ import { cn } from '../lib/utils';
 import { User, Calendar, Users, Phone, MapPin, FileText, Save, X, Edit, Trash2 } from 'lucide-react';
 import ClassPicker, { SessionType } from '../components/common/ClassPicker';
 import PageContainer from '../components/layout/PageContainer';
+import PageGrid from '../components/layout/PageGrid';
 import InputField from '../components/form/input/InputField';
 import TextArea from '../components/form/input/TextArea';
-import PageHeader from '../components/layout/PageHeader';
+import { usePageHeader } from '../context/PageHeaderContext';
+
+import { contentService } from '../services/content.service';
 
 const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [globalDate, setGlobalDate] = useState(new Date().toISOString().split('T')[0]);
@@ -20,6 +23,20 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
     const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<any>(null);
+
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        const loadMetadata = async () => {
+            const meta = await contentService.getPageMetadata('booking-details');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Booking Details', meta.description || '');
+            } else {
+                setPageHeader('Booking Details', 'Manage and monitor daily cooking classes and prep lists.');
+            }
+        };
+        loadMetadata();
+    }, [setPageHeader]);
 
     // --- FETCH DATA ---
     const fetchTableData = async () => {
@@ -136,8 +153,8 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
     const renderDetailPanel = () => {
         if (!selectedBooking) {
             return (
-                <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-white/5 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-3xl">
-                    <div className="size-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center mb-4 text-gray-300 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 dark:bg-white/5 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl">
+                    <div className="size-16 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center mb-4 text-gray-300 shadow-sm border border-gray-100 dark:border-gray-700">
                         <User className="w-8 h-8" />
                     </div>
                     <h5 className="text-gray-500 font-bold uppercase tracking-widest text-xs">No Selection</h5>
@@ -150,7 +167,7 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
         const profile = b.profiles || {};
 
         return (
-            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-[2.5rem] p-6 md:p-8 shadow-sm h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="bg-white dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
 
                 {/* Panel Header */}
                 <div className="flex justify-between items-start mb-8">
@@ -333,11 +350,11 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
     };
 
     const renderKitchenView = () => (
-        <div className="grid grid-cols-12 gap-6 h-full min-h-[600px]">
+        <PageGrid columns={12} className="h-full">
 
             {/* COLUMN 1: MASTER LIST (2/3) */}
-            <div className="col-span-12 lg:col-span-8 flex flex-col gap-4 overflow-hidden">
-                <div className="rounded-[2.5rem] border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a1a]/80 shadow-sm overflow-hidden flex-1 flex flex-col">
+            <div className="col-span-12 lg:col-span-8 flex flex-col gap-4 overflow-hidden h-full min-h-[600px]">
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1a1a1a]/80 shadow-sm overflow-hidden flex-1 flex flex-col">
 
                     {/* List Header */}
                     <div className="p-5 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
@@ -426,22 +443,19 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
                 {renderDetailPanel()}
             </div>
 
-        </div>
+        </PageGrid>
     );
 
     return (
-        <PageContainer>
-            <PageHeader
-                title="Booking Details"
-                subtitle="Manage and monitor daily cooking classes and prep lists."
-            >
+        <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col">
+            <div className="mb-6">
                 <ClassPicker
                     date={globalDate}
                     onDateChange={setGlobalDate}
                     session={globalSession}
                     onSessionChange={setGlobalSession}
                 />
-            </PageHeader>
+            </div>
 
             <div className="flex-1 min-h-0 relative">
                 {renderKitchenView()}

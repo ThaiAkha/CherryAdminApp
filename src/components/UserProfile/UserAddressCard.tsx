@@ -115,7 +115,7 @@ export default function UserAddressCard() {
                 <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Commission Rate
                 </p>
-                <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                <p className="text-sm font-semibold text-brand-600 dark:text-brand-400">
                   {user?.agency_commission_rate ? `${user.agency_commission_rate}%` : "Not set"}
                 </p>
               </div>

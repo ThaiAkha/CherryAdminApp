@@ -92,7 +92,7 @@ export default function UserMetaCard() {
               <button
                 onClick={handleAvatarClick}
                 disabled={isUploading}
-                className="absolute bottom-0 right-0 flex items-center justify-center w-8 h-8 text-white transition-all duration-300 bg-blue-600 rounded-full hover:scale-110 disabled:bg-gray-400 shadow-lg"
+                className="absolute bottom-0 right-0 flex items-center justify-center w-8 h-8 text-white transition-all duration-300 bg-brand-600 rounded-full hover:scale-110 disabled:bg-gray-400 shadow-lg"
               >
                 {isUploading ? (
                   <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
@@ -113,7 +113,7 @@ export default function UserMetaCard() {
                 {user?.full_name || "User"}
               </h4>
               <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                <p className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
+                <p className="text-xs font-black uppercase tracking-widest text-brand-600 dark:text-brand-400">
                   {user?.role ? user.role.toUpperCase() : "GUEST"}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>

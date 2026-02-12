@@ -80,7 +80,7 @@ export default function AgencyRecentBookings() {
                             <TableRow key={booking.internal_id}>
                                 <TableCell className="py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-[32px] w-[32px] overflow-hidden rounded-md bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-[10px]">
+                                        <div className="h-[32px] w-[32px] overflow-hidden rounded-md bg-brand-50 flex items-center justify-center text-brand-600 font-bold text-[10px]">
                                             {booking.guest_name?.substring(0, 2).toUpperCase() || 'AG'}
                                         </div>
                                         <div>

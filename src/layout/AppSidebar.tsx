@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
 import {
   CalenderIcon,
   GridIcon,
-  HorizontaLDots,
   PageIcon,
   PieChartIcon,
   TableIcon,
   UserCircleIcon,
-  ChevronDownIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 import SidebarWidget from "./SidebarWidget";
 
 type NavItem = {
@@ -18,50 +17,38 @@ type NavItem = {
   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  allowedRoles?: string[];
 };
 
-const navGroups: { name: string; items: NavItem[] }[] = [
-  {
-    name: "Manager",
-    items: [
-      { icon: <GridIcon />, name: "Home", path: "/" },
-      { icon: <TableIcon />, name: "Booking Details", path: "/booking-overview" },
-      { icon: <CalenderIcon />, name: "New Fast Booking", path: "/admin-booking-new" },
-      { icon: <CalenderIcon />, name: "New Booking (Site)", path: "/booking" },
-      { icon: <PageIcon />, name: "Logistics", path: "/logistics" },
-      { icon: <PageIcon />, name: "Storefront", path: "/store-front" },
-      { icon: <PageIcon />, name: "Market Shop", path: "/market-shop" },
-      { icon: <UserCircleIcon />, name: "Market Runner", path: "/market-runner" },
-      { icon: <CalenderIcon />, name: "Calendar", path: "/calendar" },
-      { icon: <PageIcon />, name: "Store Manager", path: "/store-manager" },
-    ]
-  },
-  {
-    name: "Agency",
-    items: [
-      { icon: <UserCircleIcon />, name: "Agency Dashboard", path: "/agency-dashboard" },
-      { icon: <CalenderIcon />, name: "New Booking", path: "/booking" },
-      { icon: <PieChartIcon />, name: "Reports", path: "/reports" },
-    ]
-  },
-  {
-    name: "Kitchen",
-    items: [
-      { icon: <TableIcon />, name: "Booking Details", path: "/booking-overview" },
-      { icon: <PageIcon />, name: "Store Front", path: "/store-front" },
-    ]
-  },
-  {
-    name: "Driver",
-    items: [
-      { icon: <PageIcon />, name: "Driver", path: "/driver" },
-      { icon: <PieChartIcon />, name: "Reports", path: "/reports" },
-    ]
-  }
+const navItems: NavItem[] = [
+  { icon: <GridIcon />, name: "Agency Portal", path: "/", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PieChartIcon />, name: "Agency Dashboard", path: "/agency-dashboard", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <TableIcon />, name: "Booking Details", path: "/booking-overview", allowedRoles: ["admin", "manager", "kitchen"] },
+  { icon: <CalenderIcon />, name: "New Fast Booking", path: "/admin-booking-new", allowedRoles: ["admin", "manager"] },
+  { icon: <CalenderIcon />, name: "New Booking (Site)", path: "/booking", allowedRoles: ["admin", "manager"] },
+  { icon: <PageIcon />, name: "Logistics", path: "/logistics", allowedRoles: ["admin", "manager"] },
+  { icon: <PageIcon />, name: "Storefront", path: "/store-front", allowedRoles: ["admin", "manager", "kitchen"] },
+  { icon: <PageIcon />, name: "Market Shop", path: "/market-shop", allowedRoles: ["admin", "manager"] },
+  { icon: <UserCircleIcon />, name: "Market Runner", path: "/market-runner", allowedRoles: ["admin", "manager"] },
+  { icon: <CalenderIcon />, name: "Calendar", path: "/calendar", allowedRoles: ["admin", "manager"] },
+  { icon: <PageIcon />, name: "Store Manager", path: "/store-manager", allowedRoles: ["admin", "manager"] },
+  // Agency
+
+  { icon: <UserCircleIcon />, name: "Reservations", path: "/agency-reservations", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <CalenderIcon />, name: "New Booking", path: "/agency-booking", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PieChartIcon />, name: "Reports", path: "/agency-reports", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PageIcon />, name: "News & Updates", path: "/agency-news", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PageIcon />, name: "Net Rates", path: "/agency-rates", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PageIcon />, name: "Policies", path: "/agency-terms", allowedRoles: ["admin", "manager", "agency"] },
+  { icon: <PageIcon />, name: "Downloads", path: "/agency-assets", allowedRoles: ["admin", "manager", "agency"] },
+  // Driver
+  { icon: <PageIcon />, name: "Driver", path: "/driver", allowedRoles: ["admin", "manager", "driver"] },
+  { icon: <PieChartIcon />, name: "Reports", path: "/reports", allowedRoles: ["admin", "manager", "driver"] },
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
+  const { user } = useAuth();
   const location = useLocation();
 
   // Unused state removed
@@ -83,67 +70,34 @@ const AppSidebar: React.FC = () => {
     return () => document.removeEventListener("click", clickHandler);
   }, [isExpanded, setIsHovered]);
 
-  const [openGroups, setOpenGroups] = useState<string[]>(["Manager"]);
-
-  const toggleGroup = (groupName: string) => {
-    setOpenGroups(prev =>
-      prev.includes(groupName)
-        ? prev.filter(g => g !== groupName)
-        : [...prev, groupName]
-    );
-  };
-
-  const renderNavGroup = (group: { name: string; items: NavItem[] }) => {
-    const isOpen = openGroups.includes(group.name);
+  const renderNavItem = (nav: NavItem, index: number) => {
     const isSidebarExpanded = isExpanded || isHovered || isMobileOpen;
 
     return (
-      <div key={group.name} className="mb-6">
-        <button
-          onClick={() => toggleGroup(group.name)}
-          className={`w-full mb-4 text-xs uppercase flex items-center leading-[20px] text-gray-400 hover:text-gray-600 transition-colors ${!isSidebarExpanded ? "lg:justify-center" : "justify-between"
-            }`}
+      <li key={index}>
+        <Link
+          to={nav.path || "/"}
+          onClick={() => isMobileOpen && toggleMobileSidebar()}
+          className={`menu-item group ${location.pathname === nav.path
+            ? "menu-item-active"
+            : "menu-item-inactive"
+            } ${!isSidebarExpanded ? "lg:justify-center" : "justify-start"}`}
         >
-          {isSidebarExpanded ? (
-            <>
-              <span>{group.name}</span>
-              <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
-            </>
-          ) : (
-            <HorizontaLDots className="size-6" />
+          <span className={`menu-item-icon-size ${location.pathname === nav.path ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>
+            {nav.icon}
+          </span>
+          {isSidebarExpanded && (
+            <span className="menu-item-text">{nav.name}</span>
           )}
-        </button>
-
-        {isOpen && (
-          <ul className="flex flex-col gap-4">
-            {group.items.map((nav, index) => (
-              <li key={index}>
-                <Link
-                  to={nav.path || "/"}
-                  className={`menu-item group ${location.pathname === nav.path
-                    ? "menu-item-active"
-                    : "menu-item-inactive"
-                    } ${!isSidebarExpanded ? "lg:justify-center" : "justify-start"}`}
-                >
-                  <span className={`menu-item-icon-size ${location.pathname === nav.path ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>
-                    {nav.icon}
-                  </span>
-                  {isSidebarExpanded && (
-                    <span className="menu-item-text">{nav.name}</span>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+        </Link>
+      </li>
     );
   };
 
   return (
     <aside
       ref={sidebar}
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-[99] border-r border-gray-200 
         ${isExpanded || isMobileOpen
           ? "w-[290px]"
           : isHovered
@@ -189,7 +143,9 @@ const AppSidebar: React.FC = () => {
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
 
-            {navGroups.map(renderNavGroup)}
+            {navItems
+              .filter(item => !item.allowedRoles || (user?.role && item.allowedRoles.includes(user.role)))
+              .map(renderNavItem)}
 
           </div>
         </nav>

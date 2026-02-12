@@ -68,7 +68,7 @@ export default function UserInfoCard() {
               <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Role
               </p>
-              <p className="text-xs font-black uppercase tracking-[0.1em] text-blue-600 dark:text-blue-400">
+              <p className="text-xs font-black uppercase tracking-[0.1em] text-brand-600 dark:text-brand-400">
                 {user?.role ? user.role.toUpperCase() : "GUEST"}
               </p>
             </div>

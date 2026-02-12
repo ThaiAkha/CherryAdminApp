@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePageHeader } from '../context/PageHeaderContext';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/modal';
 import Button from '../components/ui/button/Button';
@@ -11,7 +12,7 @@ import NumericKeypad from '../components/common/NumericKeypad';
 import { cn } from '../lib/utils';
 import {
   LayoutDashboard, Truck, GraduationCap, Calendar as CalendarIcon,
-  Store, Search, Plus, History, Edit, X, ShoppingCart, CheckCircle2
+  Search, Plus, History, Edit, X, ShoppingCart, CheckCircle2
 } from 'lucide-react';
 import PageContainer from '../components/layout/PageContainer';
 import PageGrid from '../components/layout/PageGrid';
@@ -93,6 +94,12 @@ const MarketShop: React.FC = () => {
   const activeScope = activeTab === 'dashboard' ? null : activeTab;
 
   // --- 1. DATA INITIALIZATION ---
+  const { setPageHeader } = usePageHeader();
+
+  useEffect(() => {
+    setPageHeader('Market Console', 'Manage logistics, teacher reports, and daily market runs.');
+  }, []);
+
   const fetchData = async () => {
     try {
       const [libRes, runRes] = await Promise.all([
@@ -244,54 +251,6 @@ const MarketShop: React.FC = () => {
 
   // --- 5. LAYOUT PANES ---
 
-  // LEFT PANE (Now wrapped in Grid Card)
-  const leftPane = (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="h-16 shrink-0 flex items-center px-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
-            <Store className="w-4 h-4" />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Market Hub</span>
-        </div>
-      </div>
-
-      <div className="p-3 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-        <div className="space-y-2">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Context Date</span>
-          <MiniCalendar
-            value={selectedDate}
-            onChange={(d: Date) => {
-              setSelectedDate(d);
-              const dateKey = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-              const existing = history.find(h => h.run_date === dateKey && h.shopper_role === activeTab);
-              if (existing) setSelectedRun(existing);
-              else setSelectedRun(null);
-              setFormState({});
-            }}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Quick Status</span>
-          <div className={cn(
-            "p-3 rounded-xl border transition-all duration-300 flex items-center gap-3",
-            selectedRun
-              ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/10 dark:border-green-800 dark:text-green-400"
-              : "bg-blue-50 border-blue-200 text-blue-600 dark:bg-blue-900/10 dark:border-blue-800 dark:text-blue-400"
-          )}>
-            {selectedRun ? <CheckCircle2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            <div className="min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-widest">{selectedRun ? 'Report Active' : 'Ready to Create'}</div>
-              <div className="text-[9px] opacity-60 truncate font-medium">{formatLongDate(selectedDate)}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   // CENTER PANE
   const renderCenterContent = () => {
     return (
@@ -299,7 +258,7 @@ const MarketShop: React.FC = () => {
         {/* CENTER HEADER */}
         <div className="h-16 shrink-0 flex items-center justify-between px-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {activeTab === 'dashboard' ? 'Console Overview' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} View`}
+            {activeTab === 'dashboard' ? 'Overview' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} View`}
           </h2>
 
           <div className="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -332,12 +291,6 @@ const MarketShop: React.FC = () => {
         <div className="flex-1 overflow-y-auto custom-scrollbar relative">
           {activeTab === 'dashboard' ? (
             <div className="p-12 space-y-12 animate-in fade-in duration-500">
-              <div className="max-w-2xl space-y-4">
-                <h1 className="text-4xl font-black italic text-gray-900 dark:text-white leading-none">Market Console</h1>
-                <p className="text-gray-500 dark:text-gray-400 text-lg">
-                  Welcome to the central marketplace hub. Create daily lists for logistics or report final costs as a teacher.
-                </p>
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* LOGISTICS CARD */}
@@ -384,7 +337,7 @@ const MarketShop: React.FC = () => {
                     size="md"
                     startIcon={isEditSelectionMode ? <X className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                     onClick={() => setIsEditSelectionMode(!isEditSelectionMode)}
-                    className={cn("border-transparent", isEditSelectionMode && "bg-red-50 text-red-600 hover:bg-red-100")}
+                    className={cn("border-transparent", isEditSelectionMode && "bg-brand-50 text-brand-600 hover:bg-brand-100")}
                   >
                     {isEditSelectionMode ? 'Cancel' : 'Edit Report'}
                   </Button>
@@ -601,18 +554,13 @@ const MarketShop: React.FC = () => {
     <PageContainer className="h-[calc(100vh-64px)]">
       <PageGrid columns={12} className="h-full gap-6 animate-in fade-in duration-500">
 
-        {/* 1. LEFT PANE (Filters) - Grid Col 2 */}
-        <div className="lg:col-span-2 flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-          {leftPane}
-        </div>
-
-        {/* 2. CENTER PANE (Main) - Grid Col 7 */}
-        <div className="lg:col-span-7 flex flex-col h-full bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        {/* 1. CENTER PANE (Main) - Grid Col 8 (2/3) */}
+        <div className="lg:col-span-8 flex flex-col h-full bg-gray-50 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           {renderCenterContent()}
         </div>
 
-        {/* 3. RIGHT PANE (Inspector) - Grid Col 3 */}
-        <div className="lg:col-span-3 flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
+        {/* 2. RIGHT PANE (Inspector) - Grid Col 4 (1/3) */}
+        <div className="lg:col-span-4 flex flex-col h-full bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-sm">
           {rightPane}
         </div>
 

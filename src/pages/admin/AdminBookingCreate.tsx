@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import PageContainer from '../../components/layout/PageContainer';
 import PageHeader from '../../components/layout/PageHeader';
+import PageMeta from '../../components/common/PageMeta';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
 import Button from '../../components/ui/button/Button';
 import InputField from '../../components/form/input/InputField';
 import TextArea from '../../components/form/input/TextArea';
@@ -53,7 +56,21 @@ const AdminBookingCreate: React.FC = () => {
     const [pickupTime, setPickupTime] = useState('08:30');
     const [notes, setNotes] = useState('');
 
+    const { setPageHeader } = usePageHeader();
     // --- EFFECTS ---
+
+    // Load Metadata
+    useEffect(() => {
+        const loadMetadata = async () => {
+            const meta = await contentService.getPageMetadata('admin-booking-create');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'New Fast Booking', meta.description || '');
+            } else {
+                setPageHeader('New Fast Booking', 'Create a manual booking for walk-ins or manual entries.');
+            }
+        };
+        loadMetadata();
+    }, [setPageHeader]);
 
     // Fetch Agencies on Mount
     useEffect(() => {
@@ -174,227 +191,233 @@ const AdminBookingCreate: React.FC = () => {
     };
 
     return (
-        <PageContainer>
-            <PageHeader
-                title="New Fast Booking"
-                subtitle="Create a manual booking for walk-ins or manual entries."
-            >
-                <Button variant="outline" onClick={() => navigate('/booking-overview')} startIcon={<History className="w-4 h-4" />}>
-                    Recent
-                </Button>
-            </PageHeader>
+        <>
+            <PageMeta
+                title="New Fast Booking | Thai Akha Kitchen"
+                description="Create a manual booking for walk-ins or manual entries."
+            />
+            <PageContainer variant="narrow">
+                <PageHeader
+                    title="New Fast Booking"
+                    subtitle="Create a manual booking for walk-ins or manual entries."
+                >
+                    <Button variant="outline" onClick={() => navigate('/booking-overview')} startIcon={<History className="w-4 h-4" />}>
+                        Recent
+                    </Button>
+                </PageHeader>
 
-            <div className="max-w-[95rem] mx-auto space-y-6 pb-20">
+                <div className="max-w-[95rem] mx-auto space-y-6 pb-20">
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-                    {/* ---------------- COLUMN 1: WHO & WHEN (4 span) ---------------- */}
-                    <div className="lg:col-span-4 space-y-6">
+                        {/* ---------------- COLUMN 1: WHO & WHEN (4 span) ---------------- */}
+                        <div className="lg:col-span-4 space-y-6">
 
-                        {/* 1. DATE SELECTION */}
-                        <div className="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-4">
-                            <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">1. Date & Session</h6>
-                            <AdminClassPicker
-                                date={date}
-                                session={session}
-                                onDateChange={setDate}
-                                onSessionChange={setSession}
-                            />
-                        </div>
-
-                        {/* 2. GUEST DETAILS */}
-                        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex gap-2">
-                                <button
-                                    onClick={() => setUserMode('new')}
-                                    className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'new' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                                >
-                                    New Guest
-                                </button>
-                                <button
-                                    onClick={() => setUserMode('existing')}
-                                    className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'existing' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                                >
-                                    Existing
-                                </button>
-                                <button
-                                    onClick={() => setUserMode('agency')}
-                                    className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'agency' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
-                                >
-                                    Agency
-                                </button>
+                            {/* 1. DATE SELECTION */}
+                            <div className="p-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-4">
+                                <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">1. Date & Session</h6>
+                                <AdminClassPicker
+                                    date={date}
+                                    session={session}
+                                    onDateChange={setDate}
+                                    onSessionChange={setSession}
+                                />
                             </div>
 
-                            <div className="p-6 space-y-4">
-                                {userMode === 'new' ? (
-                                    <>
-                                        <InputField label="Full Name" value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} leftIcon={<User className="w-4 h-4" />} />
-                                        <InputField label="Email (Optional)" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} leftIcon={<Mail className="w-4 h-4" />} />
-                                        <InputField label="Phone / WhatsApp" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} leftIcon={<Phone className="w-4 h-4" />} />
+                            {/* 2. GUEST DETAILS */}
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+                                <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 flex gap-2">
+                                    <button
+                                        onClick={() => setUserMode('new')}
+                                        className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'new' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                    >
+                                        New Guest
+                                    </button>
+                                    <button
+                                        onClick={() => setUserMode('existing')}
+                                        className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'existing' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                    >
+                                        Existing
+                                    </button>
+                                    <button
+                                        onClick={() => setUserMode('agency')}
+                                        className={cn("flex-1 py-2 text-xs font-black uppercase rounded-lg transition-all", userMode === 'agency' ? "bg-white dark:bg-gray-700 text-brand-600 shadow-sm" : "text-gray-400 hover:text-gray-600")}
+                                    >
+                                        Agency
+                                    </button>
+                                </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Diet</label>
-                                                <select
-                                                    value={newUser.diet}
-                                                    onChange={e => setNewUser({ ...newUser, diet: e.target.value })}
-                                                    className="w-full h-11 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 text-sm outline-none focus:border-brand-500"
-                                                >
-                                                    <option value="diet_regular">Regular</option>
-                                                    <option value="diet_vegetarian">Vegetarian</option>
-                                                    <option value="diet_vegan">Vegan</option>
-                                                </select>
+                                <div className="p-6 space-y-4">
+                                    {userMode === 'new' ? (
+                                        <>
+                                            <InputField label="Full Name" value={newUser.fullName} onChange={e => setNewUser({ ...newUser, fullName: e.target.value })} leftIcon={<User className="w-4 h-4" />} />
+                                            <InputField label="Email (Optional)" value={newUser.email} onChange={e => setNewUser({ ...newUser, email: e.target.value })} leftIcon={<Mail className="w-4 h-4" />} />
+                                            <InputField label="Phone / WhatsApp" value={newUser.phone} onChange={e => setNewUser({ ...newUser, phone: e.target.value })} leftIcon={<Phone className="w-4 h-4" />} />
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Diet</label>
+                                                    <select
+                                                        value={newUser.diet}
+                                                        onChange={e => setNewUser({ ...newUser, diet: e.target.value })}
+                                                        className="w-full h-11 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 text-sm outline-none focus:border-brand-500"
+                                                    >
+                                                        <option value="diet_regular">Regular</option>
+                                                        <option value="diet_vegetarian">Vegetarian</option>
+                                                        <option value="diet_vegan">Vegan</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : userMode === 'existing' ? (
+                                        <div className="space-y-4">
+                                            <InputField
+                                                placeholder="Search name, email..."
+                                                value={searchQuery}
+                                                onChange={e => setSearchQuery(e.target.value)}
+                                                leftIcon={<Search className="w-4 h-4" />}
+                                            />
+                                            <div className="max-h-60 overflow-y-auto space-y-2">
+                                                {searchResults.map(u => (
+                                                    <div key={u.id} onClick={() => setSelectedUser(u)} className={cn("p-3 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800", selectedUser?.id === u.id ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10" : "border-transparent")}>
+                                                        <div className="font-bold text-gray-900 dark:text-white">{u.full_name}</div>
+                                                        <div className="text-xs text-gray-500">{u.email}</div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-                                    </>
-                                ) : userMode === 'existing' ? (
-                                    <div className="space-y-4">
-                                        <InputField
-                                            placeholder="Search name, email..."
-                                            value={searchQuery}
-                                            onChange={e => setSearchQuery(e.target.value)}
-                                            leftIcon={<Search className="w-4 h-4" />}
-                                        />
-                                        <div className="max-h-60 overflow-y-auto space-y-2">
-                                            {searchResults.map(u => (
-                                                <div key={u.id} onClick={() => setSelectedUser(u)} className={cn("p-3 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800", selectedUser?.id === u.id ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10" : "border-transparent")}>
-                                                    <div className="font-bold text-gray-900 dark:text-white">{u.full_name}</div>
-                                                    <div className="text-xs text-gray-500">{u.email}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Select Agency</label>
-                                        <div className="max-h-60 overflow-y-auto space-y-2">
-                                            {agencyList.map(a => (
-                                                <div key={a.id} onClick={() => setSelectedUser(a)} className={cn("p-3 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3", selectedUser?.id === a.id ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10" : "border-transparent")}>
-                                                    <div className="size-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">AG</div>
-                                                    <div>
-                                                        <div className="font-bold text-gray-900 dark:text-white">{a.full_name}</div>
-                                                        <div className="text-xs text-gray-500">{a.email}</div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Select Agency</label>
+                                            <div className="max-h-60 overflow-y-auto space-y-2">
+                                                {agencyList.map(a => (
+                                                    <div key={a.id} onClick={() => setSelectedUser(a)} className={cn("p-3 rounded-xl border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3", selectedUser?.id === a.id ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10" : "border-transparent")}>
+                                                        <div className="size-8 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center font-bold text-xs">AG</div>
+                                                        <div>
+                                                            <div className="font-bold text-gray-900 dark:text-white">{a.full_name}</div>
+                                                            <div className="text-xs text-gray-500">{a.email}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
 
 
-                    {/* ---------------- COLUMN 2: LOGISTICS (4 span) ---------------- */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-6 h-full">
-                            <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">3. Logistics</h6>
+                        {/* ---------------- COLUMN 2: LOGISTICS (4 span) ---------------- */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-6 h-full">
+                                <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">3. Logistics</h6>
 
-                            <InputField
-                                label="Hotel / Meeting Point"
-                                value={hotel}
-                                onChange={e => setHotel(e.target.value)}
-                                leftIcon={<MapPin className="w-4 h-4" />}
-                            />
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <InputField
-                                    label="Pickup Time"
-                                    type="time"
-                                    value={pickupTime}
-                                    onChange={e => setPickupTime(e.target.value)}
+                                    label="Hotel / Meeting Point"
+                                    value={hotel}
+                                    onChange={e => setHotel(e.target.value)}
+                                    leftIcon={<MapPin className="w-4 h-4" />}
                                 />
 
-                                <div>
-                                    <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Zone</label>
-                                    <select
-                                        value={zone}
-                                        onChange={e => setZone(e.target.value)}
-                                        className="w-full h-11 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 text-sm font-bold uppercase outline-none focus:border-brand-500"
+                                <div className="grid grid-cols-2 gap-4">
+                                    <InputField
+                                        label="Pickup Time"
+                                        type="time"
+                                        value={pickupTime}
+                                        onChange={e => setPickupTime(e.target.value)}
+                                    />
+
+                                    <div>
+                                        <label className="text-[10px] uppercase font-black text-gray-500 mb-1 block">Zone</label>
+                                        <select
+                                            value={zone}
+                                            onChange={e => setZone(e.target.value)}
+                                            className="w-full h-11 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-3 text-sm font-bold uppercase outline-none focus:border-brand-500"
+                                        >
+                                            {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/20 text-orange-600 text-xs flex gap-2">
+                                    <Info className="w-4 h-4 shrink-0" />
+                                    <span>Check zone color on map if unsure. Incorrect zone may delay pickup.</span>
+                                </div>
+
+                                <TextArea
+                                    label="Internal / Kitchen Notes"
+                                    value={notes}
+                                    onChange={val => setNotes(val)}
+                                    rows={4}
+                                />
+                            </div>
+                        </div>
+
+
+                        {/* ---------------- COLUMN 3: STATUS & PAY (4 span) ---------------- */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-8 shadow-xl dark:shadow-none">
+                                <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">4. Summary</h6>
+
+                                {/* PAX CONTROL */}
+                                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+                                    <span className="text-sm font-black uppercase text-gray-400">PAX</span>
+                                    <div className="flex items-center gap-4">
+                                        <button onClick={() => setPax(Math.max(1, pax - 1))} className="size-10 rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 text-xl font-bold">-</button>
+                                        <span className="text-3xl font-display font-black text-brand-600 w-12 text-center">{pax}</span>
+                                        <button onClick={() => setPax(pax + 1)} className="size-10 rounded-full bg-brand-600 text-white shadow-lg hover:scale-110 transition-transform text-xl font-bold">+</button>
+                                    </div>
+                                </div>
+
+                                {/* PRICE CONTROL */}
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase font-black text-gray-400 block">Total Price (THB)</label>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={e => setAmount(Number(e.target.value))}
+                                        className="w-full bg-transparent text-5xl font-display font-black text-brand-600 outline-none border-b-2 border-gray-100 dark:border-gray-800 focus:border-brand-500 transition-all p-2"
+                                    />
+                                </div>
+
+                                {/* STATUS TOGGLES */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setPaymentStatus(paymentStatus === 'paid' ? 'pending' : 'paid')}
+                                        className={cn("h-14 rounded-xl border-2 flex items-center justify-center gap-2 font-bold uppercase text-xs transition-all", paymentStatus === 'paid' ? "border-green-500 bg-green-50 dark:bg-green-900/10 text-green-600" : "border-gray-200 dark:border-gray-700 text-gray-400")}
                                     >
-                                        {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
-                                    </select>
+                                        {paymentStatus === 'paid' ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                                        {paymentStatus === 'paid' ? "PAID" : "UNPAID"}
+                                    </button>
+
+                                    <button
+                                        onClick={() => setStatus(status === 'confirmed' ? 'pending' : 'confirmed')}
+                                        className={cn("h-14 rounded-xl border-2 flex items-center justify-center gap-2 font-bold uppercase text-xs transition-all", status === 'confirmed' ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10 text-brand-600" : "border-gray-200 dark:border-gray-700 text-gray-400")}
+                                    >
+                                        {status === 'confirmed' ? "CONFIRMED" : "PENDING"}
+                                    </button>
                                 </div>
-                            </div>
 
-                            <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-900/20 text-orange-600 text-xs flex gap-2">
-                                <Info className="w-4 h-4 shrink-0" />
-                                <span>Check zone color on map if unsure. Incorrect zone may delay pickup.</span>
-                            </div>
+                                <hr className="border-gray-100 dark:border-gray-800" />
 
-                            <TextArea
-                                label="Internal / Kitchen Notes"
-                                value={notes}
-                                onChange={val => setNotes(val)}
-                                rows={4}
-                            />
-                        </div>
-                    </div>
-
-
-                    {/* ---------------- COLUMN 3: STATUS & PAY (4 span) ---------------- */}
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 space-y-8 shadow-xl dark:shadow-none">
-                            <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">4. Summary</h6>
-
-                            {/* PAX CONTROL */}
-                            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-                                <span className="text-sm font-black uppercase text-gray-400">PAX</span>
-                                <div className="flex items-center gap-4">
-                                    <button onClick={() => setPax(Math.max(1, pax - 1))} className="size-10 rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 text-xl font-bold">-</button>
-                                    <span className="text-3xl font-display font-black text-brand-600 w-12 text-center">{pax}</span>
-                                    <button onClick={() => setPax(pax + 1)} className="size-10 rounded-full bg-brand-600 text-white shadow-lg hover:scale-110 transition-transform text-xl font-bold">+</button>
-                                </div>
-                            </div>
-
-                            {/* PRICE CONTROL */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-gray-400 block">Total Price (THB)</label>
-                                <input
-                                    type="number"
-                                    value={amount}
-                                    onChange={e => setAmount(Number(e.target.value))}
-                                    className="w-full bg-transparent text-5xl font-display font-black text-brand-600 outline-none border-b-2 border-gray-100 dark:border-gray-800 focus:border-brand-500 transition-all p-2"
-                                />
-                            </div>
-
-                            {/* STATUS TOGGLES */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setPaymentStatus(paymentStatus === 'paid' ? 'pending' : 'paid')}
-                                    className={cn("h-14 rounded-xl border-2 flex items-center justify-center gap-2 font-bold uppercase text-xs transition-all", paymentStatus === 'paid' ? "border-green-500 bg-green-50 dark:bg-green-900/10 text-green-600" : "border-gray-200 dark:border-gray-700 text-gray-400")}
+                                <Button
+                                    size="md"
+                                    variant="primary"
+                                    onClick={handleCreate}
+                                    disabled={loading}
+                                    className="h-16 w-full text-lg shadow-brand-glow"
+                                    startIcon={!loading && <Rocket className="w-5 h-5" />}
                                 >
-                                    {paymentStatus === 'paid' ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
-                                    {paymentStatus === 'paid' ? "PAID" : "UNPAID"}
-                                </button>
+                                    {loading ? "Creating..." : "CREATE BOOKING"}
+                                </Button>
 
-                                <button
-                                    onClick={() => setStatus(status === 'confirmed' ? 'pending' : 'confirmed')}
-                                    className={cn("h-14 rounded-xl border-2 flex items-center justify-center gap-2 font-bold uppercase text-xs transition-all", status === 'confirmed' ? "border-brand-500 bg-brand-50 dark:bg-brand-900/10 text-brand-600" : "border-gray-200 dark:border-gray-700 text-gray-400")}
-                                >
-                                    {status === 'confirmed' ? "CONFIRMED" : "PENDING"}
-                                </button>
                             </div>
-
-                            <hr className="border-gray-100 dark:border-gray-800" />
-
-                            <Button
-                                size="md"
-                                variant="primary"
-                                onClick={handleCreate}
-                                disabled={loading}
-                                className="h-16 w-full text-lg shadow-brand-glow"
-                                startIcon={!loading && <Rocket className="w-5 h-5" />}
-                            >
-                                {loading ? "Creating..." : "CREATE BOOKING"}
-                            </Button>
-
                         </div>
-                    </div>
 
+                    </div>
                 </div>
-            </div>
-        </PageContainer>
+            </PageContainer>
+        </>
     );
 };
 

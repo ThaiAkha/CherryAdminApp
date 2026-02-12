@@ -15,7 +15,10 @@ import {
     Calendar,
     Briefcase
 } from 'lucide-react';
-import PageHeader from '../components/layout/PageHeader';
+import { usePageHeader } from '../context/PageHeaderContext';
+import { useEffect } from 'react';
+
+import { contentService } from '../services/content.service';
 
 // --- TYPES ---
 interface ReportCard {
@@ -31,6 +34,19 @@ interface ReportCard {
 
 const Reports: React.FC = () => {
     const [selectedReportId, setSelectedReportId] = useState<string | null>('income');
+    const { setPageHeader } = usePageHeader();
+
+    useEffect(() => {
+        const loadMetadata = async () => {
+            const meta = await contentService.getPageMetadata('reports');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Reports & Analytics', meta.description || '');
+            } else {
+                setPageHeader('Reports & Analytics', 'Analyze performance, revenue, and guest demographics.');
+            }
+        };
+        loadMetadata();
+    }, [setPageHeader]);
 
     const REPORTS: ReportCard[] = [
         {
@@ -198,11 +214,8 @@ const Reports: React.FC = () => {
     };
 
     return (
-        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
-            <PageHeader
-                title="Reports & Analytics"
-                subtitle="Analyze performance, revenue, and guest demographics."
-            >
+        <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col">
+            <div className="mb-6">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm h-10">
                         <Calendar className="w-4 h-4 text-brand-500" />
@@ -212,7 +225,7 @@ const Reports: React.FC = () => {
                         <Search className="w-5 h-5" />
                     </button>
                 </div>
-            </PageHeader>
+            </div>
 
             <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
                 <div className="grid grid-cols-12 gap-6 pb-12">
