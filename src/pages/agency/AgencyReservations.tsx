@@ -1,18 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { cn } from '../lib/utils';
-import Label from '../components/form/Label';
-import Button from '../components/ui/button/Button';
-import Badge from '../components/ui/badge/Badge';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
+import { cn } from '../../lib/utils';
+import Label from '../../components/form/Label';
+import Button from '../../components/ui/button/Button';
+import Badge from '../../components/ui/badge/Badge';
 import {
     Search, Plus, MapPin, Clock, Phone,
     FileText, Printer, Save, Edit, Calendar,
-    MoreHorizontal, Briefcase, TrendingUp, DollarSign
+    MoreHorizontal
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
-import { usePageHeader } from '../context/PageHeaderContext';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import PageMeta from '../../components/common/PageMeta';
 
 interface AgencyBooking {
     internal_id: string;
@@ -45,20 +46,6 @@ export default function AgencyReservations() {
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<Partial<AgencyBooking>>({});
     const [isSaving, setIsSaving] = useState(false);
-
-    // Stats
-    const stats = useMemo(() => {
-        const total = bookings.length;
-        const activeMonth = bookings.filter(b => {
-            const date = new Date(b.booking_date);
-            const now = new Date();
-            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-        }).length;
-        const pendingComm = bookings
-            .filter(b => b.status === 'confirmed' || b.status === 'completed')
-            .reduce((sum, b) => sum + (b.commission || 0), 0);
-        return { total, activeMonth, pendingComm };
-    }, [bookings]);
 
     const fetchBookings = async () => {
         if (!user) return;
@@ -145,64 +132,11 @@ export default function AgencyReservations() {
     }, [bookings, statusFilter, searchQuery]);
 
     return (
-        <PageContainer className="h-[calc(100vh-64px)] flex flex-col no-scrollbar">
-            {/* --- STATS & PARTNER INFO --- */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                {/* Partner Glass Card */}
-                <div className="md:col-span-1 p-5 rounded-2xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl flex flex-col justify-between">
-                    <div>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="size-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-lg">
-                                <Briefcase className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                                <h4 className="text-sm font-black uppercase text-gray-900 dark:text-white truncate">Partner Info</h4>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-0.5">Verified Agency</p>
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <div className="text-lg font-black italic uppercase text-brand-600 dark:text-brand-400 truncate">
-                                {user?.agency_company_name || user?.full_name}
-                            </div>
-                            <div className="text-[10px] font-bold text-gray-400">Rate: {user?.agency_commission_rate}%</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stat 1 */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-                    <div className="size-12 rounded-2xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-600 dark:text-brand-400">
-                        <Calendar className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Bookings</div>
-                        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.total}</div>
-                    </div>
-                </div>
-
-                {/* Stat 2 */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-                    <div className="size-12 rounded-2xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-600 dark:text-green-400">
-                        <TrendingUp className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Active Month</div>
-                        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.activeMonth}</div>
-                    </div>
-                </div>
-
-                {/* Stat 3 */}
-                <div className="p-5 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4">
-                    <div className="size-12 rounded-2xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-600 dark:text-brand-400">
-                        <DollarSign className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Total Commission</div>
-                        <div className="text-2xl font-black text-gray-900 dark:text-white leading-none">{stats.pendingComm.toLocaleString()} <span className="text-xs font-normal text-gray-400">THB</span></div>
-                    </div>
-                </div>
-            </div>
-
+        <PageContainer className="h-[calc(100vh-180px)] flex flex-col no-scrollbar">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
             <div className="mb-6 flex justify-between items-center">
                 <h3 className="text-xl font-black uppercase text-gray-900 dark:text-white italic tracking-tighter">Reservations Ledger</h3>
                 <Button

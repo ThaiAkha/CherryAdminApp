@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import Avatar from '../components/ui/avatar/Avatar';
-import Badge from '../components/ui/badge/Badge';
-import Button from '../components/ui/button/Button';
-import Input from '../components/form/input/InputField';
-import TextArea from '../components/form/input/TextArea';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import Avatar from '../../components/ui/avatar/Avatar';
+import Badge from '../../components/ui/badge/Badge';
+import Button from '../../components/ui/button/Button';
+import Input from '../../components/form/input/InputField';
+import TextArea from '../../components/form/input/TextArea';
+import { cn } from '../../lib/utils';
 import {
     Sun, Moon, CarTaxiFront, MapPin, Phone, Printer, Wand2,
     Search, X, Save, UserRound
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
-import { usePageHeader } from '../context/PageHeaderContext';
-import ClassPicker, { SessionType } from '../components/common/ClassPicker';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import ClassPicker, { SessionType } from '../../components/common/ClassPicker';
+import PageMeta from '../../components/common/PageMeta';
+import { contentService } from '../../services/content.service';
 
 // --- TYPES ---
 interface LogisticsItem {
@@ -46,8 +48,6 @@ interface SessionSummary {
     session_id: string;
     unassigned_count: number;
 }
-
-import { contentService } from '../services/content.service';
 
 const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [loading, setLoading] = useState(true);
@@ -194,7 +194,11 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
     const selectedBooking = useMemo(() => items.find(i => i.id === selectedBookingId), [items, selectedBookingId]);
 
     return (
-        <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col">
+        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
             <div className="mb-6">
                 <div className="flex items-center gap-3">
                     <ClassPicker
@@ -203,12 +207,6 @@ const Logistics: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                         session={selectedSessionId}
                         onSessionChange={(s) => setSelectedSessionId(s as SessionType)}
                     />
-                    <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm">
-                        <Search className="w-5 h-5" />
-                    </button>
-                    <button className="size-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-400 hover:text-brand-500 transition-colors shadow-sm ml-auto">
-                        <Printer className="w-5 h-5" />
-                    </button>
                 </div>
             </div>
 

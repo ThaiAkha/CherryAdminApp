@@ -1,17 +1,17 @@
 import { useEffect } from "react";
-import EcommerceMetrics from "../components/ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "../components/ecommerce/MonthlySalesChart";
-import MonthlyTarget from "../components/ecommerce/MonthlyTarget";
-import RecentBookings from "../components/booking/RecentBookings";
-import AgencyRecentBookings from "../components/booking/AgencyRecentBookings";
-import DemographicCard from "../components/ecommerce/DemographicCard";
-import PageMeta from "../components/common/PageMeta";
-import PageContainer from "../components/layout/PageContainer";
-import { usePageHeader } from "../context/PageHeaderContext";
-import { contentService } from "../services/content.service";
+import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
+import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
+import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
+import RecentBookings from "../../components/booking/RecentBookings";
+import AgencyRecentBookings from "../../components/booking/AgencyRecentBookings";
+import DemographicCard from "../../components/ecommerce/DemographicCard";
+import PageMeta from "../../components/common/PageMeta";
+import PageContainer from "../../components/layout/PageContainer";
+import { usePageHeader } from "../../context/PageHeaderContext";
+import { contentService } from "../../services/content.service";
 import { Link } from 'react-router';
 import { Calendar, Plus, Home } from 'lucide-react';
-import Button from '../components/ui/button/Button';
+import Button from '../../components/ui/button/Button';
 
 const QuickActions = () => (
     <div className="flex items-center gap-2">
@@ -49,11 +49,11 @@ export default function AgencyDashboard() {
     return (
         <>
             <PageMeta
-                title="Admin Dashboard | Thai Akha Kitchen"
-                description="Unified admin dashboard for ecommerce and booking metrics."
+                title="Admin 1122 Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
             />
-            <PageContainer variant="narrow">
-                <div className="grid grid-cols-12 gap-4 md:gap-6 pb-12">
+            <PageContainer variant="full">
+                <div className="pb-20 space-y-8">
                     <div className="col-span-12 space-y-6">
                         <EcommerceMetrics />
 

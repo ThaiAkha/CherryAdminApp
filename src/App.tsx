@@ -1,32 +1,36 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
-import NotFound from "./pages/OtherPage/NotFound";
-import UserProfiles from "./pages/UserProfiles";
-import Calendar from "./pages/Calendar";
+import SignIn from "./pages/auth/SignIn";
+import SignUp from "./pages/auth/SignUp";
+import NotFound from "./pages/common/NotFound";
+import UserProfiles from "./pages/common/UserProfiles";
 import AppLayout from "./layout/AppLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import AgencyDashboard from "./pages/AgencyDashboard";
-import BookingPage from "./pages/BookingPage";
-import BookingOverview from "./pages/BookingOverview";
-import Logistics from "./pages/Logistics";
-import DriverDashboard from "./pages/DriverDashboard";
-import MarketRunner from "./pages/MarketRunner";
-import StoreFront from "./pages/StoreFront";
-import StoreManager from "./pages/StoreManager";
-import AgencyReservations from "./pages/AgencyReservations";
-import AgencyPortal from "./pages/AgencyPortal";
-import MarketShop from "./pages/MarketShop";
-import Reports from "./pages/Reports";
+import AgencyDashboard from "./pages/agency/AgencyDashboard";
+import BookingPage from "./pages/common/BookingPage";
+import DriverDashboard from "./pages/driver/DriverDashboard";
+
+// Kitchen Pages
+import BookingOverview from "./pages/kitchen/BookingOverview";
+import StoreFront from "./pages/kitchen/StoreFront";
+
+// Manager Pages
+import Calendar from "./pages/manager/Calendar";
+import Logistics from "./pages/manager/Logistics";
+import MarketRunner from "./pages/manager/MarketRunner";
+import StoreManager from "./pages/manager/StoreManager";
+import AgencyReservations from "./pages/agency/AgencyReservations";
+import AgencyPortal from "./pages/agency/AgencyPortal";
+import MarketShop from "./pages/common/MarketShop";
+import DriverReports from "./pages/driver/DriverReports";
 import AdminBookingCreate from "./pages/admin/AdminBookingCreate";
-import AgencyBooking from "./pages/AgencyBooking";
-import AgencyReports from "./pages/AgencyReports";
-import AgencyNews from "./pages/AgencyNews";
-import AgencyRates from "./pages/AgencyRates";
-import AgencyTerms from "./pages/AgencyTerms";
-import AgencyAssets from "./pages/AgencyAssets";
+import AgencyBooking from "./pages/agency/AgencyBooking";
+import AgencyReports from "./pages/agency/AgencyReports";
+import AgencyNews from "./pages/agency/AgencyNews";
+import AgencyRates from "./pages/agency/AgencyRates";
+import AgencyTerms from "./pages/agency/AgencyTerms";
+import AgencyAssets from "./pages/agency/AgencyAssets";
 
 
 export default function App() {
@@ -52,7 +56,7 @@ export default function App() {
 
               {/* Admin Pages (Migrated to AppLayout) */}
               <Route path="/booking-overview" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen']}><BookingOverview onNavigate={() => { }} /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency', 'driver']}><Reports /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency', 'driver']}><DriverReports /></ProtectedRoute>} />
 
               <Route path="/agency-reservations" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyReservations /></ProtectedRoute>} />
               <Route path="/agency-booking" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyBooking /></ProtectedRoute>} />

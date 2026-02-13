@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
+import { cn } from '../../lib/utils';
 import {
     BarChart3,
     DollarSign,
@@ -15,6 +15,7 @@ import {
     ArrowDownRight,
     FileText
 } from 'lucide-react';
+import PageMeta from '../../components/common/PageMeta';
 
 interface AgencyReportCard {
     id: string;
@@ -105,8 +106,12 @@ const AgencyReports: React.FC = () => {
     if (loading) return <div className="p-8 text-center uppercase font-black text-gray-400">Loading Report...</div>;
 
     return (
-        <PageContainer>
-            <div className="grid grid-cols-12 gap-6 pb-20 mt-4">
+        <PageContainer variant="full">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
+            <div className="grid grid-cols-12 gap-6 pb-20">
 
                 {/* METRICS GRID */}
                 <div className="col-span-12 lg:col-span-8 space-y-6">

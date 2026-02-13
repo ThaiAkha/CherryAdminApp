@@ -1,0 +1,21 @@
+
+> tailadmin-react@2.1.0 build
+> tsc -b && vite build
+
+vite v6.1.0 building for production...
+transforming...
+✓ 9 modules transformed.
+x Build failed in 186ms
+error during build:
+[vite:css] [postcss] Cannot apply unknown utility class: dark:
+file: /Users/svevomondino/Desktop/Cherry Admin App/src/index.css:undefined:NaN
+    at onInvalidCandidate (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:17:297)
+    at ne (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:12:115576)
+    at /Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:17:260
+    at _ (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:5:1652)
+    at _ (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:5:1930)
+    at $e (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:17:150)
+    at Mr (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:33:708)
+    at async Wr (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/tailwindcss/dist/lib.js:33:995)
+    at async ot (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/@tailwindcss/node/dist/index.js:10:3272)
+    at async p (/Users/svevomondino/Desktop/Cherry Admin App/node_modules/@tailwindcss/postcss/dist/index.js:8:3242)

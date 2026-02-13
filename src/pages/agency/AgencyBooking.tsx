@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import PageContainer from '../components/layout/PageContainer';
-import Button from '../components/ui/button/Button';
-import InputField from '../components/form/input/InputField';
-import TextArea from '../components/form/input/TextArea';
+import { supabase } from '../../lib/supabase';
+import PageContainer from '../../components/layout/PageContainer';
+import Button from '../../components/ui/button/Button';
+import InputField from '../../components/form/input/InputField';
+import TextArea from '../../components/form/input/TextArea';
 import { User, Mail, MapPin, Send, Info } from 'lucide-react';
-import AdminClassPicker from './admin/components/AdminClassPicker';
+import AdminClassPicker from '../../components/common/AdminClassPicker';
 import { useNavigate } from 'react-router';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import PageMeta from '../../components/common/PageMeta';
 
 const PRICES: Record<string, number> = {
     morning_class: 1400,
@@ -115,10 +116,13 @@ const AgencyBooking: React.FC = () => {
     };
 
     return (
-        <PageContainer>
-            <div className="max-w-6xl mx-auto space-y-8 pb-20 mt-4">
+        <PageContainer variant="full">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
+            <div className="pb-20 space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
                     {/* LEFT COL: WHO & WHEN */}
                     <div className="lg:col-span-7 space-y-8">
                         <div className="p-8 rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm space-y-8">
@@ -196,7 +200,7 @@ const AgencyBooking: React.FC = () => {
 
                     {/* RIGHT COL: SUMMARY & ACTION */}
                     <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
-                        <div className="p-8 rounded-[2.5rem] border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl space-y-8">
+                        <div className="p-8 rounded-[2rem] border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl space-y-8">
                             <h6 className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Booking Summary</h6>
 
                             <div className="space-y-4">

@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { supabase } from '../lib/supabase';
-import { authService, UserProfile } from '../services/auth.service';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import { authService, UserProfile } from '../../services/auth.service';
+import { cn } from '../../lib/utils';
 import {
     Calendar, Users, CalendarDays, ArrowRight, User, CheckCircle2, Building2, Send,
     Plus, Minus, Sun, Moon
 } from 'lucide-react';
 
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
-import Button from '../components/ui/button/Button';
-import InputField from '../components/form/input/InputField';
-import TextArea from '../components/form/input/TextArea';
-import { Modal } from '../components/ui/modal';
-import { CalendarView } from '../components/booking/CalendarView';
-import Switch from '../components/form/switch/Switch';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
+import Button from '../../components/ui/button/Button';
+import InputField from '../../components/form/input/InputField';
+import TextArea from '../../components/form/input/TextArea';
+import { Modal } from '../../components/ui/modal';
+import { CalendarView } from '../../components/booking/CalendarView';
+import Switch from '../../components/form/switch/Switch';
 
 interface HotelLocation {
     id: string;

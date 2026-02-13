@@ -12,7 +12,7 @@ const PageContainer: React.FC<PageContainerProps> = ({ children, className, vari
         <div className={cn(
             "w-full mx-auto px-2 py-4 md:p-3 lg:p-4 animate-in fade-in duration-500",
             variant === 'default' && "max-w-[1920px]", // Full HD optimized
-            variant === 'narrow' && "max-w-7xl",
+            variant === 'narrow' && "max-w-5xl",
             variant === 'full' && "max-w-full",
             className
         )}>

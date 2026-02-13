@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router';
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
 import {
     Newspaper,
     Zap,
@@ -12,9 +12,10 @@ import {
     TrendingUp,
     Home
 } from 'lucide-react';
-import { cn } from '../lib/utils';
-import { usePageHeader } from '../context/PageHeaderContext';
-import Button from '../components/ui/button/Button';
+import { cn } from '../../lib/utils';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import Button from '../../components/ui/button/Button';
+import PageMeta from '../../components/common/PageMeta';
 
 interface NewsItem {
     id: string;
@@ -77,7 +78,11 @@ const AgencyNews: React.FC = () => {
 
     return (
         <PageContainer variant="narrow">
-            <div className="pb-20 mt-4 space-y-8">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
+            <div className="pb-20 space-y-8">
 
                 {/* URGENT ALERTS */}
                 <div className="bg-brand-600 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-brand-500/20">

@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import Avatar from '../components/ui/avatar/Avatar';
-import Badge from '../components/ui/badge/Badge';
-import Button from '../components/ui/button/Button';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import Avatar from '../../components/ui/avatar/Avatar';
+import Badge from '../../components/ui/badge/Badge';
+import Button from '../../components/ui/button/Button';
+import { cn } from '../../lib/utils';
 import {
     Search, ShoppingBag, Users, CreditCard, Trash2, X, Receipt
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
-import ClassPicker, { SessionType } from '../components/common/ClassPicker';
-import { usePageHeader } from '../context/PageHeaderContext';
-import { contentService } from '../services/content.service';
-import PageMeta from '../components/common/PageMeta';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
+import ClassPicker, { SessionType } from '../../components/common/ClassPicker';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
+import PageMeta from '../../components/common/PageMeta';
 
 // --- TYPES ---
 interface Guest {

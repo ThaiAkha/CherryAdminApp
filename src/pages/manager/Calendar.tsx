@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import { Modal } from '../components/ui/modal';
-import Button from '../components/ui/button/Button';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import { Modal } from '../../components/ui/modal';
+import Button from '../../components/ui/button/Button';
+import { cn } from '../../lib/utils';
 import {
     ChevronLeft, ChevronRight, Sun, Moon, Lock, AlertTriangle
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
-import { usePageHeader } from '../context/PageHeaderContext';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import PageMeta from '../../components/common/PageMeta';
 
 // --- INTERFACES ---
 interface SessionStatus {
@@ -234,6 +235,10 @@ const Calendar: React.FC = () => {
 
     return (
         <PageContainer className="h-[calc(100vh-64px)] overflow-hidden">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
             <div className="w-full h-full flex flex-col font-sans select-none bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-2xl overflow-hidden shadow-sm border border-gray-200 dark:border-gray-800">
 
                 {/* HEADER (Toolbar) */}

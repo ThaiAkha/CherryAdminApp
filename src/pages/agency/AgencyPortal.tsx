@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { usePageHeader } from '../context/PageHeaderContext';
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
-import Button from '../components/ui/button/Button';
+import { useAuth } from '../../context/AuthContext';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
+import Button from '../../components/ui/button/Button';
 import {
     Plus, Calendar, FileText, PieChart, ShoppingBag,
     ArrowRight, TrendingUp, Info
 } from 'lucide-react';
 import { Link } from 'react-router';
-import { supabase } from '../lib/supabase';
-import { contentService } from '../services/content.service';
+import { supabase } from '../../lib/supabase';
+import { contentService } from '../../services/content.service';
+import PageMeta from '../../components/common/PageMeta';
 
 const QuickActions = () => (
     <div className="flex items-center gap-2">
@@ -84,16 +85,20 @@ const AgencyPortal: React.FC = () => {
     ];
 
     return (
-        <PageContainer variant="narrow">
-            <div className="max-w-7xl mx-auto space-y-8 pb-10">
+        <PageContainer variant="full">
+            <PageMeta
+                title="Thai Akha Agency Portal | Thai Akha Kitchen"
+                description="To be set up later."
+            />
+            <div className="pb-20 space-y-8">
 
                 {/* HERO SECTION */}
                 <div className="rounded-3xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-white/[0.03] md:p-12 relative overflow-hidden shadow-sm">
                     <div className="relative z-10 space-y-6 max-w-2xl">
-                        <Badge color="primary" className="px-4 py-1 text-xs font-bold uppercase tracking-widest">
-                            {pageMeta?.badge || 'Partner Welcome'}
+                        <Badge color="primary" className="px-6 py-2 text-lf font-bold uppercase tracking-widest">
+                            {pageMeta?.badge || 'Welcome'}
                         </Badge>
-                        <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-gray-900 dark:text-white leading-none">
+                        <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-gray-800 dark:text-white leading-none">
                             {pageMeta?.titleMain || 'Sawasdee kha'}, <span className="text-brand-600">{user?.agency_company_name || user?.full_name}</span>!
                         </h1>
                         <p className="text-lg font-medium text-gray-500 dark:text-gray-400 max-w-lg leading-relaxed">

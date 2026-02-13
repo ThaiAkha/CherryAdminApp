@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router';
-import PageContainer from '../components/layout/PageContainer';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
 import {
     Download,
     Image as ImageIcon,
@@ -12,8 +13,9 @@ import {
     Home,
     TrendingUp
 } from 'lucide-react';
-import { usePageHeader } from '../context/PageHeaderContext';
-import Button from '../components/ui/button/Button';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import Button from '../../components/ui/button/Button';
+import PageMeta from '../../components/common/PageMeta';
 
 const QuickActions = () => (
     <div className="flex items-center gap-2">
@@ -44,8 +46,19 @@ const AgencyAssets: React.FC = () => {
     ];
 
     return (
-        <PageContainer variant="narrow">
-            <div className="pb-20 mt-4 space-y-12">
+        <PageContainer variant="full">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
+            <div className="pb-20 space-y-8">
+                <div className="text-left space-y-2 mb-12">
+                    <Badge variant="light" color="primary" className="font-black uppercase tracking-widest">Legal Framework</Badge>
+                    <h2 className="text-4xl font-black uppercase italic tracking-tighter text-gray-900 dark:text-white">Partner Policies</h2>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Standard operational procedures and conditions for all B2B booking partners.
+                    </p>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {ASSETS.map((asset, i) => (

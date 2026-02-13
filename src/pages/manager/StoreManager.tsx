@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import Button from '../components/ui/button/Button';
-import Input from '../components/form/input/InputField';
-import TextArea from '../components/form/input/TextArea';
-import Badge from '../components/ui/badge/Badge';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/ui/button/Button';
+import Input from '../../components/form/input/InputField';
+import TextArea from '../../components/form/input/TextArea';
+import Badge from '../../components/ui/badge/Badge';
+import { cn } from '../../lib/utils';
 import {
     Plus, Save, Trash2, Filter,
     ShoppingBag, Package, Image as ImageIcon,
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
-import { usePageHeader } from '../context/PageHeaderContext';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
+import { usePageHeader } from '../../context/PageHeaderContext';
 
 // --- TYPES ---
 interface Product {

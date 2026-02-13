@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { usePageHeader } from '../context/PageHeaderContext';
-import { supabase } from '../lib/supabase';
-import { Modal } from '../components/ui/modal';
-import Button from '../components/ui/button/Button';
-import Badge from '../components/ui/badge/Badge';
-import Input from '../components/form/input/InputField';
-import { ShopItemCard } from '../components/market/ShopItemCard';
-import MiniCalendar from '../components/common/MiniCalendar';
-import NumericKeypad from '../components/common/NumericKeypad';
-import { cn } from '../lib/utils';
+import { useAuth } from '../../context/AuthContext';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import { supabase } from '../../lib/supabase';
+import { Modal } from '../../components/ui/modal';
+import Button from '../../components/ui/button/Button';
+import Badge from '../../components/ui/badge/Badge';
+import Input from '../../components/form/input/InputField';
+import { ShopItemCard } from '../../components/market/ShopItemCard';
+import MiniCalendar from '../../components/common/MiniCalendar';
+import NumericKeypad from '../../components/common/NumericKeypad';
+import { cn } from '../../lib/utils';
 import {
   LayoutDashboard, Truck, GraduationCap, Calendar as CalendarIcon,
   Search, Plus, History, Edit, X, ShoppingCart, CheckCircle2
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
 
 // --- TYPES ---
 interface LibraryItem {

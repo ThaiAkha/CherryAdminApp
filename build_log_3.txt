@@ -1,0 +1,53 @@
+
+> tailadmin-react@2.1.0 build
+> tsc -b && vite build
+
+vite v6.1.0 building for production...
+transforming...
+node_modules/@react-jvectormap/core/dist/index.js (29:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (40:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (51:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (62:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (73:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (84:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (95:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (106:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (117:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (128:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (139:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (150:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (161:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (172:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (183:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (194:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (205:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (216:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (227:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (237:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (248:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (259:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (270:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (281:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (292:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (303:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (314:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (325:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (336:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (347:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (358:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (369:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (380:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (391:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+node_modules/@react-jvectormap/core/dist/index.js (402:0): Use of eval in "node_modules/@react-jvectormap/core/dist/index.js" is strongly discouraged as it poses security risks and may cause issues with minification.
+✓ 1919 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.78 kB │ gzip:   0.44 kB
+dist/assets/index-B8nq0fL8.css    226.03 kB │ gzip:  33.66 kB
+dist/assets/index-BbJsJkH8.js   1,935.68 kB │ gzip: 503.36 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.65s

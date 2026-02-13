@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import PageContainer from '../../components/layout/PageContainer';
-import PageHeader from '../../components/layout/PageHeader';
 import PageMeta from '../../components/common/PageMeta';
 import { usePageHeader } from '../../context/PageHeaderContext';
 import { contentService } from '../../services/content.service';
 import Button from '../../components/ui/button/Button';
 import InputField from '../../components/form/input/InputField';
 import TextArea from '../../components/form/input/TextArea';
-import { User, Mail, Phone, MapPin, CheckCircle, Clock, Search, History, Rocket, Info } from 'lucide-react';
-import AdminClassPicker from './components/AdminClassPicker';
+import { User, Mail, Phone, MapPin, CheckCircle, Clock, Search, Rocket, Info } from 'lucide-react';
+import AdminClassPicker from '../../components/common/AdminClassPicker';
 import { cn } from '../../lib/utils';
-import { useNavigate } from 'react-router';
 
 // --- CONSTANTS ---
 const PRICES: Record<string, number> = {
@@ -22,7 +20,6 @@ const PRICES: Record<string, number> = {
 const ZONES = ['green', 'pink', 'yellow', 'outside', 'walk-in'];
 
 const AdminBookingCreate: React.FC = () => {
-    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 
     // --- 1. SESSION DATA ---
@@ -196,17 +193,9 @@ const AdminBookingCreate: React.FC = () => {
                 title="New Fast Booking | Thai Akha Kitchen"
                 description="Create a manual booking for walk-ins or manual entries."
             />
-            <PageContainer variant="narrow">
-                <PageHeader
-                    title="New Fast Booking"
-                    subtitle="Create a manual booking for walk-ins or manual entries."
-                >
-                    <Button variant="outline" onClick={() => navigate('/booking-overview')} startIcon={<History className="w-4 h-4" />}>
-                        Recent
-                    </Button>
-                </PageHeader>
+            <PageContainer>
 
-                <div className="max-w-[95rem] mx-auto space-y-6 pb-20">
+                <div className="space-y-6 pb-20">
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 

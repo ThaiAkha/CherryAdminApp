@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import Button from '../components/ui/button/Button';
-import Badge from '../components/ui/badge/Badge';
-import Avatar from '../components/ui/avatar/Avatar';
-import { cn } from '../lib/utils';
-import { authService } from '../services/auth.service';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/ui/button/Button';
+import Badge from '../../components/ui/badge/Badge';
+import Avatar from '../../components/ui/avatar/Avatar';
+import { cn } from '../../lib/utils';
+import { authService } from '../../services/auth.service';
 import {
     Map, MessageSquare, CheckCircle2, ArrowRight, Flag,
     Sun, Moon, Bus
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import { usePageHeader } from '../context/PageHeaderContext';
-import { contentService } from '../services/content.service';
-import PageMeta from '../components/common/PageMeta';
+import PageContainer from '../../components/layout/PageContainer';
+import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
+import PageMeta from '../../components/common/PageMeta';
 
 // --- CONFIGURAZIONE STATI ---
 type TransportStatus = 'waiting' | 'driver_en_route' | 'driver_arrived' | 'on_board' | 'dropped_off';

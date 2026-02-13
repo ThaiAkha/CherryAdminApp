@@ -1,12 +1,12 @@
-import UserMetaCard from "../components/UserProfile/UserMetaCard";
-import UserInfoCard from "../components/UserProfile/UserInfoCard";
-import UserAddressCard from "../components/UserProfile/UserAddressCard";
-import UserSecurityCard from "../components/UserProfile/UserSecurityCard";
-import PageMeta from "../components/common/PageMeta";
-import PageContainer from "../components/layout/PageContainer";
-import { usePageHeader } from "../context/PageHeaderContext";
+import UserMetaCard from "../../components/UserProfile/UserMetaCard";
+import UserInfoCard from "../../components/UserProfile/UserInfoCard";
+import UserAddressCard from "../../components/UserProfile/UserAddressCard";
+import UserSecurityCard from "../../components/UserProfile/UserSecurityCard";
+import PageMeta from "../../components/common/PageMeta";
+import PageContainer from "../../components/layout/PageContainer";
+import { usePageHeader } from "../../context/PageHeaderContext";
 import { useEffect } from "react";
-import { contentService } from "../services/content.service";
+import { contentService } from "../../services/content.service";
 
 export default function UserProfiles() {
   const { setPageHeader } = usePageHeader();

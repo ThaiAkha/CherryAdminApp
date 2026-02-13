@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import PageContainer from '../components/layout/PageContainer';
-import Badge from '../components/ui/badge/Badge';
-import { cn } from '../lib/utils';
+import PageContainer from '../../components/layout/PageContainer';
+import Badge from '../../components/ui/badge/Badge';
+import { cn } from '../../lib/utils';
 import {
     BarChart3,
     DollarSign,
@@ -15,10 +15,10 @@ import {
     Calendar,
     Briefcase
 } from 'lucide-react';
-import { usePageHeader } from '../context/PageHeaderContext';
+import { usePageHeader } from '../../context/PageHeaderContext';
 import { useEffect } from 'react';
 
-import { contentService } from '../services/content.service';
+import { contentService } from '../../services/content.service';
 
 // --- TYPES ---
 interface ReportCard {
@@ -32,7 +32,7 @@ interface ReportCard {
     details: string;
 }
 
-const Reports: React.FC = () => {
+const DriverReports: React.FC = () => {
     const [selectedReportId, setSelectedReportId] = useState<string | null>('income');
     const { setPageHeader } = usePageHeader();
 
@@ -40,9 +40,9 @@ const Reports: React.FC = () => {
         const loadMetadata = async () => {
             const meta = await contentService.getPageMetadata('reports');
             if (meta) {
-                setPageHeader(meta.titleMain || 'Reports & Analytics', meta.description || '');
+                setPageHeader(meta.titleMain || 'Driver Reports', meta.description || '');
             } else {
-                setPageHeader('Reports & Analytics', 'Analyze performance, revenue, and guest demographics.');
+                setPageHeader('Driver Reports', 'Analyze performance, revenue, and guest flow.');
             }
         };
         loadMetadata();
@@ -244,4 +244,4 @@ const Reports: React.FC = () => {
     );
 };
 
-export default Reports;
+export default DriverReports;

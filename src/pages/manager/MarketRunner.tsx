@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import Button from '../components/ui/button/Button';
-import Badge from '../components/ui/badge/Badge';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import Button from '../../components/ui/button/Button';
+import Badge from '../../components/ui/badge/Badge';
+import { cn } from '../../lib/utils';
 import {
     CalendarDays, ShoppingCart, Store, Phone, MessageCircle,
     CheckCircle2, Circle, Plus, RefreshCw, Check,
     Utensils, Wheat, Egg, Apple, Fish, Beef, Soup, LayoutGrid
 } from 'lucide-react';
-import PageContainer from '../components/layout/PageContainer';
-import { usePageHeader } from '../context/PageHeaderContext';
+import PageContainer from '../../components/layout/PageContainer';
+import { usePageHeader } from '../../context/PageHeaderContext';
 
 interface ShoppingItem {
     id: string;

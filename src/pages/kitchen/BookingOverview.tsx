@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import Badge from '../components/ui/badge/Badge';
-import Button from '../components/ui/button/Button';
-import { Table, TableBody, TableCell, TableHeader, TableRow } from '../components/ui/table';
-import { cn } from '../lib/utils';
+import { supabase } from '../../lib/supabase';
+import Badge from '../../components/ui/badge/Badge';
+import Button from '../../components/ui/button/Button';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../components/ui/table';
+import { cn } from '../../lib/utils';
 import { User, Calendar, Users, Phone, MapPin, FileText, Save, X, Edit, Trash2 } from 'lucide-react';
-import ClassPicker, { SessionType } from '../components/common/ClassPicker';
-import PageContainer from '../components/layout/PageContainer';
-import PageGrid from '../components/layout/PageGrid';
-import InputField from '../components/form/input/InputField';
-import TextArea from '../components/form/input/TextArea';
-import { usePageHeader } from '../context/PageHeaderContext';
+import ClassPicker, { SessionType } from '../../components/common/ClassPicker';
+import PageContainer from '../../components/layout/PageContainer';
+import PageGrid from '../../components/layout/PageGrid';
+import InputField from '../../components/form/input/InputField';
+import TextArea from '../../components/form/input/TextArea';
+import { usePageHeader } from '../../context/PageHeaderContext';
 
-import { contentService } from '../services/content.service';
+import { contentService } from '../../services/content.service';
+import PageMeta from '../../components/common/PageMeta';
 
 const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
     const [globalDate, setGlobalDate] = useState(new Date().toISOString().split('T')[0]);
@@ -447,14 +448,21 @@ const BookingOverview: React.FC<{ onNavigate?: (page: string) => void }> = ({ on
     );
 
     return (
-        <PageContainer variant="narrow" className="h-[calc(100vh-64px)] flex flex-col">
+
+        <PageContainer className="h-[calc(100vh-64px)] flex flex-col">
+            <PageMeta
+                title="Admin Dashboard | Thai Akha Kitchen"
+                description="To be set up later."
+            />
             <div className="mb-6">
-                <ClassPicker
-                    date={globalDate}
-                    onDateChange={setGlobalDate}
-                    session={globalSession}
-                    onSessionChange={setGlobalSession}
-                />
+                <div className="flex items-center gap-3">
+                    <ClassPicker
+                        date={globalDate}
+                        onDateChange={setGlobalDate}
+                        session={globalSession}
+                        onSessionChange={setGlobalSession}
+                    />
+                </div>
             </div>
 
             <div className="flex-1 min-h-0 relative">
