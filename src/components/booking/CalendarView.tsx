@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { cn } from '../../lib/utils';
-import { ChevronLeft, ChevronRight, Ban, Sun, Moon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Ban } from 'lucide-react';
 
 interface CalendarViewProps {
     currentDate: Date;
@@ -223,14 +223,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                     <div className={cn("flex items-center justify-between px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase border",
                                         data.morning.status === 'OPEN' ? "bg-green-50 dark:bg-green-500/5 text-green-600 dark:text-green-400 border-green-100 dark:border-green-500/10" : "bg-red-50 dark:bg-red-500/5 text-red-500 dark:text-red-400 border-red-100 dark:border-red-500/10"
                                     )}>
-                                        <span className="flex gap-1 items-center"><Sun className="w-2 h-2" /><span>AM</span></span>
+                                        <span className="flex gap-1 items-center"><span>Morning</span></span>
                                         <span>{data.morning.status === 'OPEN' ? data.morning.seats : (data.morning.status === 'CLOSED' ? 'X' : '0')}</span>
                                     </div>
                                     {/* Evening Pill */}
                                     <div className={cn("flex items-center justify-between px-1.5 py-0.5 rounded-[4px] text-[8px] font-black uppercase border",
                                         data.evening.status === 'OPEN' ? "bg-purple-50 dark:bg-purple-500/5 text-purple-600 dark:text-purple-400 border-purple-100 dark:border-purple-500/10" : "bg-red-50 dark:bg-red-500/5 text-red-500 dark:text-red-400 border-red-100 dark:border-red-500/10"
                                     )}>
-                                        <span className="flex gap-1 items-center"><Moon className="w-2 h-2" /><span>PM</span></span>
+                                        <span className="flex gap-1 items-center"><span>Evening</span></span>
                                         <span>{data.evening.status === 'OPEN' ? data.evening.seats : (data.evening.status === 'CLOSED' ? 'X' : '0')}</span>
                                     </div>
                                 </div>

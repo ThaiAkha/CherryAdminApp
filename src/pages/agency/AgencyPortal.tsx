@@ -35,7 +35,7 @@ const AgencyPortal: React.FC = () => {
 
     useEffect(() => {
         const loadMetadata = async () => {
-            const meta = await contentService.getPageMetadata('agency-portal');
+            const meta = await contentService.getPageMetadata('agency-home');
             if (meta) {
                 setPageMeta(meta);
                 setPageHeader(meta.titleMain || 'Agency Portal', meta.description || '', <QuickActions />);

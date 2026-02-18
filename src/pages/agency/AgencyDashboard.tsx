@@ -32,7 +32,7 @@ export default function AgencyDashboard() {
 
     useEffect(() => {
         const loadMetadata = async () => {
-            const meta = await contentService.getPageMetadata('ecommerce-dashboard');
+            const meta = await contentService.getPageMetadata('agency-dashboard');
             if (meta) {
                 setPageHeader(
                     meta.titleMain || 'Agency Dashboard',

@@ -49,7 +49,7 @@ export const contentService = {
     async getPageMetadata(slug: string): Promise<HeaderMetadata & { imageUrl: string } | null> {
         return fetchWithCache(`meta_${slug}`, async () => {
             const { data, error } = await supabase
-                .from('site_metadata')
+                .from('site_metadata_admin')
                 .select('header_badge, header_icon, header_title_main, header_title_highlight, page_description, hero_image_url')
                 .eq('page_slug', slug)
                 .maybeSingle();
@@ -71,7 +71,7 @@ export const contentService = {
     async getMenuItems() {
         return fetchWithCache('sidebar_menu_v5', async () => {
             const { data, error } = await supabase
-                .from('site_metadata')
+                .from('site_metadata_admin')
                 .select('page_slug, menu_label, header_icon, menu_order, access_level')
                 .eq('show_in_menu', true)
                 .order('menu_order', { ascending: true });
@@ -225,6 +225,20 @@ export const contentService = {
 
             return sortedLevels;
         });
+    },
+
+    /** 📰 AGENCY NEWS: Fetch latest articles from akha_news */
+    async getLatestNews(): Promise<any[]> {
+        const data = await fetchWithCache('agency_news_v1', async () => {
+            const { data, error } = await supabase
+                .from('akha_news')
+                .select('*')
+                .eq('is_published', true)
+                .order('created_at', { ascending: false });
+
+            return error ? [] : (data || []);
+        });
+        return data || [];
     },
 
 };

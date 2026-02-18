@@ -38,7 +38,7 @@ export default function UserDropdown() {
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">
+        <span className="hidden lg:block mr-1 font-medium text-theme-sm text-gray-800 dark:text-white">
           {user?.full_name || "User"}
         </span>
         <svg

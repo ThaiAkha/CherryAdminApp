@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 *.local
+**/*.env.local
+**/*.env.*.local
+**/*.log
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +30,14 @@ dist-ssr
 .env.*
 App_Snapshot*
 App_Full_Snapshot*
+.vercel
+.netlify
+*.tsbuildinfo
+supabase/.branches
+supabase/.temp
+supabase/.env.keys
+supabase/functions/*/node_modules
+ 
+ # Google Drive Credentials
+ credentials.json
+ token.json

@@ -14,6 +14,7 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
 import Button from '../../components/ui/button/Button';
 import PageMeta from '../../components/common/PageMeta';
 
@@ -35,7 +36,15 @@ const AgencyAssets: React.FC = () => {
     const { setPageHeader } = usePageHeader();
 
     useEffect(() => {
-        setPageHeader('Marketing Assets', 'Professional content to help you promote the Thai Akha Kitchen experience.', <QuickActions />);
+        const loadMeta = async () => {
+            const meta = await contentService.getPageMetadata('agency-assets');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Asset Hub', meta.description || '', <QuickActions />);
+            } else {
+                setPageHeader('Asset Hub', 'High-res photos, brochures, and promo videos.', <QuickActions />);
+            }
+        };
+        loadMeta();
     }, [setPageHeader]);
 
     const ASSETS = [

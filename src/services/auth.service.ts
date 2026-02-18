@@ -1,5 +1,7 @@
 import { supabase } from '../lib/supabase';
 
+const PROFILE_CACHE_KEY = 'akha_user_profile_cache_v1';
+
 /**
  * 👤 USER PROFILE INTERFACE
  * Include sia i dati del Turista (Guest) che quelli dell'Agenzia (B2B).
@@ -8,8 +10,7 @@ export interface UserProfile {
     id: string;
     full_name: string;
     email: string;
-    // Added 'driver' to the allowed roles union to fix cross-component comparison errors kha
-    role: 'admin' | 'manager' | 'agency' | 'kitchen' | 'logistics' | 'alumni' | 'guest' | 'driver';
+    role: 'admin' | 'manager' | 'agency' | 'kitchen' | 'logistics' | 'driver';
 
     // Dati Turista / Preferenze
     dietary_profile: string;
@@ -38,22 +39,21 @@ export interface UserProfile {
 export const authService = {
 
     /**
-     * 📝 SIGN UP (GUEST/USER STANDARD)
-     * Registrazione classica per i turisti.
+     * 📝 SIGN UP (STANDARD)
+     * Registrazione standard — assegna ruolo 'agency' di default.
+     * Altri ruoli (admin, manager, driver, kitchen, logistics) vengono assegnati manualmente da admin.
      */
     async signUp(email: string, password: string, fullName: string) {
-        // 1. Crea Auth User
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: { full_name: fullName } // Metadati passati al Trigger SQL (se presente)
+                data: { full_name: fullName }
             }
         });
 
         if (authError) throw authError;
 
-        // 2. Safety Upsert: Garantisce che il profilo esista anche se il Trigger SQL fallisce
         if (authData.user) {
             const { error: profileError } = await supabase
                 .from('profiles')
@@ -61,12 +61,11 @@ export const authService = {
                     id: authData.user.id,
                     email: email,
                     full_name: fullName,
-                    role: 'guest', // Ruolo di default
-                    dietary_profile: 'diet_regular',
+                    role: 'agency',
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'id' });
 
-            if (profileError) console.warn("Guest profile warning:", profileError.message);
+            if (profileError) console.warn("Profile upsert warning:", profileError.message);
         }
 
         return authData;
@@ -156,14 +155,20 @@ export const authService = {
      * Scarica tutti i dati, inclusi quelli fiscali/agenzia se presenti.
      */
     async getCurrentUserProfile(): Promise<UserProfile | null> {
-        console.log("[AuthService] getCurrentUserProfile: Start");
-
-        // Log URL to verify config (masking key)
-        const sbUrl = (supabase as any).supabaseUrl;
-        console.log("[AuthService] Supabase URL:", sbUrl);
-
         try {
-            console.log("[AuthService] getCurrentUserProfile: Calling getUser() with timeout...");
+            // 🚀 STALE-WHILE-REVALIDATE: Try cache first
+            const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+            let cachedProfile: UserProfile | null = null;
+            if (cached) {
+                try {
+                    cachedProfile = JSON.parse(cached);
+                    console.log("[AuthService] Returning cached profile:", cachedProfile?.full_name);
+                } catch (e) {
+                    localStorage.removeItem(PROFILE_CACHE_KEY);
+                }
+            }
+
+            console.log("[AuthService] getCurrentUserProfile: Calling getUser()...");
 
 
             // Race between getUser and timeout
@@ -177,103 +182,64 @@ export const authService = {
             console.log("[AuthService] getCurrentUserProfile: getUser result:", user?.id);
 
             if (!user) {
-                console.log("[AuthService] getCurrentUserProfile: No user found.");
+                console.log("[AuthService] getCurrentUserProfile: No user found. Clearing cache.");
+                localStorage.removeItem(PROFILE_CACHE_KEY);
                 return null;
             }
 
-            // 👇 SELECT COMPLETA: Include colonne Agenzia
-            console.log("[AuthService] getCurrentUserProfile: Fetching profile with full selection...");
-            const { data, error } = await supabase
-                .from('profiles')
-                .select(`
-          id, full_name, email, role, avatar_url,
-          dietary_profile, allergies, preferred_spiciness_id,
-          agency_company_name, agency_commission_rate,
-          agency_tax_id, agency_phone,
-          agency_address, agency_city, agency_province, agency_country, agency_postal_code
-        `)
-                .eq('id', user.id)
-                .maybeSingle();
+            // Background fetch to update cache
+            const fetchAndUpdate = async () => {
+                try {
+                    console.log("[AuthService] Background fetching fresh profile...");
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select(`
+                            id, full_name, email, role, avatar_url,
+                            dietary_profile, allergies, preferred_spiciness_id,
+                            agency_company_name, agency_commission_rate,
+                            agency_tax_id, agency_phone,
+                            agency_address, agency_city, agency_province, agency_country, agency_postal_code
+                        `)
+                        .eq('id', user.id)
+                        .maybeSingle();
 
-            if (error) {
-                console.error("[AuthService] Full select failed, trying minimal select...", error);
-
-                // Try a minimal select to see if it's a column mismatch issue
-                // Aggiungiamo avatar_url anche qui per sicurezza
-                const { data: minData, error: minError } = await supabase
-                    .from('profiles')
-                    .select('id, full_name, email, role, avatar_url')
-                    .eq('id', user.id)
-                    .maybeSingle();
-
-                if (minError) {
-                    console.error("[AuthService] Minimal select also failed (RLS?):", minError);
-                } else if (!minData) {
-                    console.warn("[AuthService] Minimal select returned no data (Record missing in DB).");
-                } else {
-                    console.log("[AuthService] Minimal select succeeded, returning partial profile.");
-                    return {
-                        id: minData.id,
-                        full_name: minData.full_name,
-                        email: minData.email,
-                        role: minData.role as any,
-                        avatar_url: minData.avatar_url,
-                        dietary_profile: 'diet_regular',
-                        allergies: []
-                    } as UserProfile;
+                    if (!error && data) {
+                        const freshProfile: UserProfile = {
+                            id: data.id,
+                            full_name: data.full_name,
+                            email: data.email,
+                            role: (data.role as any) || 'agency',
+                            avatar_url: data.avatar_url,
+                            dietary_profile: data.dietary_profile || 'diet_regular',
+                            allergies: data.allergies || [],
+                            preferred_spiciness_id: data.preferred_spiciness_id || 2,
+                            agency_company_name: data.agency_company_name,
+                            agency_commission_rate: data.agency_commission_rate,
+                            agency_tax_id: data.agency_tax_id,
+                            agency_phone: data.agency_phone,
+                            agency_address: data.agency_address,
+                            agency_city: data.agency_city,
+                            agency_province: data.agency_province,
+                            agency_country: data.agency_country,
+                            agency_postal_code: data.agency_postal_code
+                        };
+                        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(freshProfile));
+                        console.log("[AuthService] Cache updated in background.");
+                        return freshProfile;
+                    }
+                } catch (e) {
+                    console.error("[AuthService] Background fetch error:", e);
                 }
+                return null;
+            };
 
-                // Final fallback
-                return {
-                    id: user.id,
-                    email: user.email || '',
-                    full_name: user.user_metadata?.full_name || 'User',
-                    role: 'guest',
-                    dietary_profile: 'diet_regular',
-                    allergies: []
-                } as UserProfile;
+            if (cachedProfile && cachedProfile.id === user.id) {
+                fetchAndUpdate(); // Trigger update in background
+                return cachedProfile;
             }
 
-            // Se il record non esiste nel DB, ritorniamo un profilo minimale 
-            // per evitare redirect loop nel ProtectedRoute.
-            if (!data) {
-                console.warn("[AuthService] No DB profile found for user:", user.id);
-                return {
-                    id: user.id,
-                    email: user.email || '',
-                    full_name: user.user_metadata?.full_name || 'User',
-                    role: 'guest',
-                    dietary_profile: 'diet_regular',
-                    allergies: []
-                } as UserProfile;
-            }
-
-            console.log("[AuthService] Profile fetched successfully:", data.full_name, data.role);
-
-            return {
-                id: data.id,
-                full_name: data.full_name,
-                email: data.email,
-                role: (data.role as any) || 'guest',
-                avatar_url: data.avatar_url,
-
-                // Defaults per Guest
-                dietary_profile: data.dietary_profile || 'diet_regular',
-                allergies: data.allergies || [],
-                preferred_spiciness_id: data.preferred_spiciness_id || 2,
-
-                // Mappatura Dati Agenzia
-                agency_company_name: data.agency_company_name,
-                agency_commission_rate: data.agency_commission_rate,
-                agency_tax_id: data.agency_tax_id,
-                agency_phone: data.agency_phone,
-                agency_address: data.agency_address,
-                agency_city: data.agency_city,
-                agency_province: data.agency_province,
-                agency_country: data.agency_country,
-                agency_postal_code: data.agency_postal_code
-
-            } as UserProfile;
+            const freshData = await fetchAndUpdate();
+            return freshData;
 
         } catch (err) {
             console.error("Auth profile fetch error (CAT):", err);

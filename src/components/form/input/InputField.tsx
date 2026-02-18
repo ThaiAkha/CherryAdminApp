@@ -11,13 +11,15 @@ interface InputProps {
   className?: string;
   min?: string;
   max?: string;
-  step?: number;
+  step?: number | string;
   disabled?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string;
   label?: string;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  onRightIconClick?: () => void;
   autoComplete?: string;
 }
 
@@ -38,12 +40,18 @@ const Input: FC<InputProps> = ({
   hint,
   label,
   leftIcon,
+  rightIcon,
+  onRightIconClick,
   autoComplete,
 }) => {
   let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
   if (leftIcon) {
     inputClasses += " pl-10";
+  }
+
+  if (rightIcon) {
+    inputClasses += " pr-11";
   }
 
   if (disabled) {
@@ -84,6 +92,21 @@ const Input: FC<InputProps> = ({
           autoComplete={autoComplete}
           className={inputClasses}
         />
+        {rightIcon && (
+          <div className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-400">
+            {onRightIconClick ? (
+              <button
+                type="button"
+                onClick={onRightIconClick}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
+                {rightIcon}
+              </button>
+            ) : (
+              rightIcon
+            )}
+          </div>
+        )}
       </div>
 
       {hint && (

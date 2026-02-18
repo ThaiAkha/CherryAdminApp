@@ -22,7 +22,7 @@ interface TableBodyProps {
 interface TableRowProps {
   children: ReactNode; // Cells (th or td)
   className?: string; // Optional className for styling
-  onClick?: () => void; // Optional click handler
+  onClick?: (e: React.MouseEvent) => void; // Optional click handler
 }
 
 // Props for TableCell
@@ -30,6 +30,8 @@ interface TableCellProps {
   children: ReactNode; // Cell content
   isHeader?: boolean; // If true, renders as <th>, otherwise <td>
   className?: string; // Optional className for styling
+  onClick?: (e: React.MouseEvent) => void; // Optional click handler
+  colSpan?: number;
 }
 
 // Table Component
@@ -57,9 +59,11 @@ const TableCell: React.FC<TableCellProps> = ({
   children,
   isHeader = false,
   className,
+  onClick,
+  colSpan
 }) => {
   const CellTag = isHeader ? "th" : "td";
-  return <CellTag className={` ${className}`}>{children}</CellTag>;
+  return <CellTag className={` ${className}`} onClick={onClick} colSpan={colSpan}>{children}</CellTag>;
 };
 
 export { Table, TableHeader, TableBody, TableRow, TableCell };

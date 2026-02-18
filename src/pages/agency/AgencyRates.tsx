@@ -10,6 +10,7 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
 import Button from '../../components/ui/button/Button';
 import PageMeta from '../../components/common/PageMeta';
 
@@ -31,7 +32,15 @@ const AgencyRates: React.FC = () => {
     const { setPageHeader } = usePageHeader();
 
     useEffect(() => {
-        setPageHeader('Net Rates', 'Confidential partner pricing and contract rates for the 2026 season.', <QuickActions />);
+        const loadMeta = async () => {
+            const meta = await contentService.getPageMetadata('agency-rates');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Contract Rates', meta.description || '', <QuickActions />);
+            } else {
+                setPageHeader('Contract Rates', 'Exclusive net rates and seasonal pricing tiers.', <QuickActions />);
+            }
+        };
+        loadMeta();
     }, [setPageHeader]);
 
     const RATES = [

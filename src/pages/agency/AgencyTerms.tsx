@@ -13,6 +13,7 @@ import {
     TrendingUp
 } from 'lucide-react';
 import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
 import Button from '../../components/ui/button/Button';
 import PageMeta from '../../components/common/PageMeta';
 
@@ -34,7 +35,15 @@ const AgencyTerms: React.FC = () => {
     const { setPageHeader } = usePageHeader();
 
     useEffect(() => {
-        setPageHeader('Policies & Terms', 'Standard operational procedures and conditions for all B2B booking partners.', <QuickActions />);
+        const loadMeta = async () => {
+            const meta = await contentService.getPageMetadata('agency-terms');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Terms & Conditions', meta.description || '', <QuickActions />);
+            } else {
+                setPageHeader('Terms & Conditions', 'Cancellation policies, payment terms, and rules.', <QuickActions />);
+            }
+        };
+        loadMeta();
     }, [setPageHeader]);
 
     return (

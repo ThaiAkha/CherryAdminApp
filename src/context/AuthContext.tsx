@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authService, UserProfile } from '../services/auth.service';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import AkhaPixelPattern from '../components/ui/AkhaPixelPattern';
 
 interface AuthContextType {
     user: UserProfile | null;
@@ -18,7 +19,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<UserProfile | null>(null);
+    const [user, setUser] = useState<UserProfile | null>(() => {
+        const cached = localStorage.getItem('akha_user_profile_cache_v1');
+        return cached ? JSON.parse(cached) : null;
+    });
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -34,23 +38,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     useEffect(() => {
-        // Initial fetch
         const initAuth = async () => {
-            console.log("[Auth] initAuth: Starting...");
-            setLoading(true);
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                console.log("[Auth] initAuth: Session fetched", session?.user?.email);
                 setSession(session);
+
                 if (session) {
-                    console.log("[Auth] initAuth: Refreshing profile...");
+                    const cached = localStorage.getItem('akha_user_profile_cache_v1');
+                    const cachedUser = cached ? JSON.parse(cached) : null;
+
+                    if (cachedUser && cachedUser.id === session.user.id) {
+                        setUser(cachedUser);
+                        setLoading(false);
+                        // Background refresh — non blocca l'UI
+                        refreshProfile();
+                        return;
+                    }
+
+                    // No cache match — fetch obbligatorio
                     await refreshProfile();
-                    console.log("[Auth] initAuth: Profile refreshed.");
+                } else {
+                    setUser(null);
+                    localStorage.removeItem('akha_user_profile_cache_v1');
                 }
             } catch (error) {
-                console.error("[Auth] initAuth: Error:", error);
+                console.error("[Auth] initAuth error:", error);
+                setUser(null);
             } finally {
-                console.log("[Auth] initAuth: Finally block reached. Setting loading=false");
                 setLoading(false);
             }
         };
@@ -103,7 +117,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthContext.Provider value={value}>
-            {loading ? <div className="p-10 text-center">Loading Auth...</div> : children}
+            {loading ? (
+                <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
+                    <AkhaPixelPattern variant="logo" size={10} speed={30} />
+                </div>
+            ) : children}
         </AuthContext.Provider>
     );
 }

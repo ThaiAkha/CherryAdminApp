@@ -13,6 +13,7 @@ import {
 import PageContainer from '../../components/layout/PageContainer';
 import PageGrid from '../../components/layout/PageGrid';
 import { usePageHeader } from '../../context/PageHeaderContext';
+import { contentService } from '../../services/content.service';
 import PageMeta from '../../components/common/PageMeta';
 
 interface AgencyBooking {
@@ -93,8 +94,16 @@ export default function AgencyReservations() {
     const { setPageHeader } = usePageHeader();
 
     useEffect(() => {
-        setPageHeader('Agency Reservations', 'Track bookings, manage invoices, and monitor commissions.');
-    }, []);
+        const loadMeta = async () => {
+            const meta = await contentService.getPageMetadata('agency-reservations');
+            if (meta) {
+                setPageHeader(meta.titleMain || 'Booking Management', meta.description || '');
+            } else {
+                setPageHeader('Booking Management', 'Track bookings, manage invoices, and commissions.');
+            }
+        };
+        loadMeta();
+    }, [setPageHeader]);
 
     useEffect(() => { fetchBookings(); }, [user]);
 
