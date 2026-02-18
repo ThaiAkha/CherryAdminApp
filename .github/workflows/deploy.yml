@@ -3,19 +3,21 @@ name: Deploy to Google Cloud Run
 on:
   push:
     branches:
-      - main  # Or your default branch
+      - main
+
+# Required for Workload Identity Federation
+permissions:
+  contents: 'read'
+  id-token: 'write'
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1 # Update to your preferred region
+  REGION: us-central1
   SERVICE_NAME: cherry-admin-app
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
 
     steps:
       - name: Checkout code
