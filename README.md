@@ -48,5 +48,11 @@ Portale dedicato ai partner e alle agenzie di viaggio.
 2.  **Sviluppo Locale**: `npm run dev`
 3.  **Build Produzione**: `npm run build`
 
+## 🚀 Deployment
+Il sistema viene distribuito automaticamente su **Google Cloud Run** tramite GitHub Actions.
+- **Ambiente**: Produzione
+- **CI/CD**: GitHub Actions (Workload Identity Federation)
+- **Container**: Docker + Nginx
+
 ---
 *Developed for Thai Akha Kitchen - Chiang Mai, Thailand.*
