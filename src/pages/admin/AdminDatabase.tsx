@@ -116,7 +116,7 @@ const AdminDatabase: React.FC = () => {
                             </Dropdown>
                         }
                         primaryAction={
-                            <Tooltip content="Insert new record" position="bottom" align="center">
+                            <Tooltip content="Insert new record" position="bottom">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedRow({})}

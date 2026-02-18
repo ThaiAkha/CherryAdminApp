@@ -1,4 +1,3 @@
-import React from 'react';
 import { ComponentConfig } from '../config/componentsConfig';
 
 // Generate default props for a component 
@@ -18,7 +17,7 @@ export const generateDefaultProps = (config: ComponentConfig): any => {
 // Generate JSX string code based on current props
 export const generateCodeSnippet = (componentName: string, props: any): string => {
     const propsString = Object.entries(props)
-        .filter(([key, value]) => value !== undefined && value !== null && value !== false)
+        .filter(([_key, value]) => value !== undefined && value !== null && value !== false)
         .map(([key, value]) => {
             if (value === true) return key;
             if (typeof value === 'string') return `${key}="${value}"`;

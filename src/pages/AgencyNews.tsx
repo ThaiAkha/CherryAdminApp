@@ -23,7 +23,6 @@ const AgencyNews: React.FC = () => {
     const [news, setNews] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-    const [pageMeta, setPageMeta] = useState<any>(null);
 
     useEffect(() => {
         const loadPageData = async () => {
@@ -32,7 +31,6 @@ const AgencyNews: React.FC = () => {
                 // Load Page Metadata
                 const meta = await contentService.getPageMetadata('agency-news');
                 if (meta) {
-                    setPageMeta(meta);
                     setPageHeader(meta.titleMain || 'Agenzia', meta.description || 'Notizie e Aggiornamenti');
                 } else {
                     setPageHeader('Agency News', 'Ultime notizie e aggiornamenti dal mondo Akha.');

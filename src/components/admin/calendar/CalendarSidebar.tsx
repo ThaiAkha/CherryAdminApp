@@ -2,7 +2,7 @@ import { Calendar } from 'lucide-react';
 import SectionHeader from '../../ui/SectionHeader';
 import MiniCalendar from '../../../components/common/MiniCalendar';
 import SessionBookingCard from '../../../components/admin/calendar/SessionBookingCard';
-import { DayData, BookingMember, getDateKey } from '../../../hooks/useAdminCalendar';
+import { DayData, BookingMember } from '../../../hooks/useAdminCalendar';
 
 interface CalendarSidebarProps {
     selectedDate: string | null;

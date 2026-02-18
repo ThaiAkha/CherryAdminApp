@@ -14,7 +14,6 @@ const ComponentShowcase: React.FC = () => {
     const mode = (searchParams.get('mode') as 'catalog' | 'playground' | 'grid') || 'catalog';
     const componentName = searchParams.get('component');
     const searchTerm = searchParams.get('search') || '';
-    const fullscreen = searchParams.get('fullscreen') === 'true';
 
     // Local State (synced with URL)
     const [activeCategory, setActiveCategory] = useState<string | null>(null);

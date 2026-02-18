@@ -4,7 +4,6 @@ import { generateDefaultProps } from '../../utils/showcaseUtils';
 import PropControl from './PropControl';
 import { RefreshCw, Code, Copy, Check } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import Button from '../ui/button/Button'; // Using our own button!
 
 interface ViewPlaygroundProps {
     component: ComponentConfig;

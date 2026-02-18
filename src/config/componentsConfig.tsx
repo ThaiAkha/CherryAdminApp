@@ -1,5 +1,4 @@
-import React from 'react';
-import { User, Mail, Search, Bell, Check, X, AlertTriangle, Info } from 'lucide-react';
+import { ComponentType } from 'react';
 import Button from '../components/ui/button/Button';
 import InputField from '../components/form/input/InputField';
 import Badge from '../components/ui/badge/Badge';
@@ -17,7 +16,7 @@ export interface ComponentProp {
 
 export interface ComponentConfig {
     name: string;
-    component: React.ComponentType<any>;
+    component: ComponentType<any>;
     description?: string;
     props: ComponentProp[];
     demoProps?: any; // Default props for the demo

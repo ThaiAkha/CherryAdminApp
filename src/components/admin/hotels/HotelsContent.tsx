@@ -27,7 +27,6 @@ const HotelsContent: React.FC<HotelsContentProps> = ({
     filteredMeetingPoints,
     selectedHotel,
     selectedMeetingPoint,
-    zones,
     onSelectHotel,
     onSelectMeetingPoint
 }) => {

@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal } from '../ui/modal';
 import Badge from '../ui/badge/Badge';
 import Button from '../ui/button/Button';
-import { X, Calendar, User, Clock } from 'lucide-react';
+import { Calendar, User, Clock } from 'lucide-react';
 
 interface Article {
     id: string;

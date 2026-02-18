@@ -109,7 +109,7 @@ const CalendarContent: React.FC<CalendarContentProps> = ({
                             {!loading && data && (
                                 <div className="space-y-1 w-full mt-auto">
                                     {['morning_class', 'evening_class'].map(s => {
-                                        const sess = data[s as keyof DayData];
+                                        const sess = data[s as 'morning_class' | 'evening_class'];
                                         return (
                                             <div
                                                 key={s}

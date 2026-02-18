@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal } from '../ui/modal';
 import { BookingCalendarView } from './BookingCalendarView';
-import { X } from 'lucide-react';
 
 interface BookingCalendarModalProps {
     isOpen: boolean;

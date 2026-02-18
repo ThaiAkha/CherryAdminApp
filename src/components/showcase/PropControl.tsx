@@ -1,9 +1,7 @@
 import React from 'react';
 import { ComponentProp } from '../../config/componentsConfig';
 import Switch from '../form/switch/Switch'; // Using local Switch
-import { cn } from '../../lib/utils';
 import InputField from '../form/input/InputField';
-import { Check, X } from 'lucide-react';
 
 interface PropControlProps {
     prop: ComponentProp;
