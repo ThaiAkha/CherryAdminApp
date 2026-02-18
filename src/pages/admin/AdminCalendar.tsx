@@ -39,7 +39,7 @@ const AdminCalendar: React.FC = () => {
         const loadMeta = async () => {
             const meta = await contentService.getPageMetadata('admin-calendar');
             if (meta) {
-                setPageHeader(meta.titleMain || 'Master Calendar', meta.description || 'Gestione calendari.');
+                setPageHeader(meta.titleMain || 'Admin Calendar', meta.description || 'Gestione calendari.');
             } else {
                 setPageHeader(
                     `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}`,
