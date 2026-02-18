@@ -12,7 +12,7 @@ permissions:
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: us-central1
+  REGION: us-west1
   SERVICE_NAME: cherry-admin-app
 
 jobs:
@@ -34,17 +34,17 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Configure Docker
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker us-west1-docker.pkg.dev --quiet
 
       - name: Build and Push Container
         run: |-
-          docker build -t "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}" .
-          docker push "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}"
+          docker build -t "us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}" .
+          docker push "us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}"
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
-          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}
+          image: us-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cherry-admin-app/app:${{ github.sha }}
           flags: '--allow-unauthenticated'
