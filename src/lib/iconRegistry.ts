@@ -173,7 +173,7 @@ export const iconRegistry: Record<string, LucideIcon> = {
 
 /**
  * Get icon component by name (string)
- * @param iconName - Name of the icon (e.g., "Home", "Package")
+ * @param iconName - Name of the icon (e.g., "Home", "Package", "hotel")
  * @param fallback - Fallback icon if not found (default: AlertCircle)
  * @returns Lucide icon component
  *
@@ -183,7 +183,15 @@ export const iconRegistry: Record<string, LucideIcon> = {
  */
 export function getIcon(iconName: string | undefined | null, fallback: LucideIcon = LucideIcons.AlertCircle): LucideIcon {
   if (!iconName) return fallback;
-  return iconRegistry[iconName] || fallback;
+
+  // Try exact match first
+  if (iconRegistry[iconName]) return iconRegistry[iconName];
+
+  // Try PascalCase normalization (handles "hotel" → "Hotel")
+  const pascalCased = iconName.charAt(0).toUpperCase() + iconName.slice(1);
+  if (iconRegistry[pascalCased]) return iconRegistry[pascalCased];
+
+  return fallback;
 }
 
 /**

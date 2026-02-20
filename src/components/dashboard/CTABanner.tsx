@@ -17,7 +17,7 @@
 
 import React from 'react';
 import { Link } from 'react-router';
-import { getIcon, type IconName } from '../../lib/iconRegistry';
+import { Heading, Paragraph } from '../typography';
 import { cn } from '../../lib/utils';
 
 export interface CTABannerProps {
@@ -32,9 +32,6 @@ export interface CTABannerProps {
 
   /** CTA button path */
   ctaPath: string;
-
-  /** Icon for CTA button */
-  icon?: string | IconName;
 
   /** Visual variant */
   variant?: 'dark' | 'brand' | 'light';
@@ -51,12 +48,10 @@ const CTABanner: React.FC<CTABannerProps> = ({
   description,
   ctaLabel,
   ctaPath,
-  icon,
   variant = 'dark',
   className,
   showPattern = true
 }) => {
-  const IconComponent = icon ? getIcon(icon) : null;
 
   const variantStyles = {
     dark: 'bg-gray-900 dark:bg-brand-600 text-white',
@@ -64,13 +59,19 @@ const CTABanner: React.FC<CTABannerProps> = ({
     light: 'bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white'
   };
 
+  const patternColors = {
+    dark: 'text-gray-800',
+    brand: 'text-brand-600',
+    light: 'text-gray-100'
+  };
+
   return (
     <Link
       to={ctaPath}
       className={cn(
         "rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between",
-        "shadow-2xl overflow-hidden relative",
-        "transition-all hover:shadow-lg hover:scale-[1.02] active:scale-95",
+        "shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden relative",
+        "transition-all hover:shadow-xl hover:shadow-brand-500/5 hover:-translate-y-1",
         "block no-underline",
         variantStyles[variant],
         className
@@ -78,7 +79,7 @@ const CTABanner: React.FC<CTABannerProps> = ({
     >
       {/* Decorative Pattern */}
       {showPattern && (
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className={cn("absolute inset-0 opacity-20 pointer-events-none", patternColors[variant])}>
           <svg
             className="w-full h-full"
             preserveAspectRatio="none"
@@ -102,15 +103,20 @@ const CTABanner: React.FC<CTABannerProps> = ({
 
       {/* Content */}
       <div className="relative z-10 text-center md:text-left mb-8 md:mb-0 max-w-2xl">
-        <h2 className="text-3xl font-bold mb-2 tracking-tight">{title}</h2>
-        <p className={cn(
-          "max-w-lg leading-relaxed",
-          variant === 'light'
-            ? 'text-gray-600 dark:text-gray-300'
-            : 'text-white/70'
-        )}>
+        <Heading level="h2" className="mb-2 !text-white">
+          {title}
+        </Heading>
+        <Paragraph
+          size="lg"
+          className={cn(
+            "!max-w-lg",
+            variant === 'light'
+              ? '!text-gray-600 dark:!text-gray-300'
+              : '!text-white/70'
+          )}
+        >
           {description}
-        </p>
+        </Paragraph>
       </div>
 
       {/* CTA Button */}
@@ -125,7 +131,6 @@ const CTABanner: React.FC<CTABannerProps> = ({
           )}
         >
           {ctaLabel}
-          {IconComponent && <IconComponent className="w-4 h-4" />}
         </div>
       </div>
     </Link>

@@ -21,6 +21,7 @@ const MarketRunner = lazy(() => import("./pages/market/MarketRunner"));
 const AgencyReservations = lazy(() => import("./pages/agency/AgencyReservations"));
 const DriverHome = lazy(() => import("./pages/driver/DriverHome"));
 const ManagerBooking = lazy(() => import("./pages/manager/ManagerBooking"));
+const ManagerReports = lazy(() => import("./pages/manager/ManagerReports"));
 const AgencyBooking = lazy(() => import("./pages/agency/AgencyBooking"));
 const AgencyReports = lazy(() => import("./pages/agency/AgencyReports"));
 const AgencyNews = lazy(() => import("./pages/agency/AgencyNews"));
@@ -75,10 +76,12 @@ function App() {
               <Route path="/agency-dashboard" element={<ProtectedRoute allowedRoles={['agency']}><AgencyDashboard /></ProtectedRoute>} />
               <Route path="/agency-portal" element={<ProtectedRoute allowedRoles={['agency']}><AgencyPortal /></ProtectedRoute>} />
               <Route path="/manager-booking" element={<ProtectedRoute allowedRoles={['manager']}><ManagerBooking /></ProtectedRoute>} />
+              <Route path="/manager-reports" element={<ProtectedRoute allowedRoles={['manager']}><ManagerReports /></ProtectedRoute>} />
               <Route path="/manager-home" element={<ProtectedRoute allowedRoles={['manager']}><ManagerHome /></ProtectedRoute>} />
-              <Route path="/logistics" element={<ProtectedRoute allowedRoles={['manager', 'logistics']}><ManagerLogistic onNavigate={() => { }} /></ProtectedRoute>} />
+              <Route path="/manager-logistics" element={<ProtectedRoute allowedRoles={['manager', 'logistics']}><ManagerLogistic onNavigate={() => { }} /></ProtectedRoute>} />
               <Route path="/driver" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'driver']}><DriverRoute /></ProtectedRoute>} />
               <Route path="/market-shop" element={<ProtectedRoute allowedRoles={['manager']}><MarketShop /></ProtectedRoute>} />
+              <Route path="/admin-market-plan" element={<ProtectedRoute allowedRoles={['manager']}><MarketShop /></ProtectedRoute>} />
               <Route path="/market-run" element={<ProtectedRoute allowedRoles={['manager']}><MarketRunner /></ProtectedRoute>} />
               <Route path="/manager-pos" element={<ProtectedRoute allowedRoles={['manager']}><ManagerPos /></ProtectedRoute>} />
 

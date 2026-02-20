@@ -18,6 +18,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import { getIcon, type IconName } from '../../lib/iconRegistry';
+import { Heading, Paragraph } from '../typography';
 import { cn } from '../../lib/utils';
 
 export interface FeatureCardProps {
@@ -54,7 +55,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   path,
   linkLabel,
   className,
-  aspectRatio = 'aspect-[5/2.4]'
+  aspectRatio = 'aspect-[5/2.7]'
 }) => {
   const IconComponent = icon ? getIcon(icon) : null;
 
@@ -62,49 +63,52 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     <Link
       to={path}
       className={cn(
-        "group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden",
+        "group relative bg-white dark:bg-gray-900 rounded-3xl overflow-hidden",
         "shadow-sm border border-gray-100 dark:border-gray-800",
         "flex flex-col transition-all duration-300",
-        "hover:shadow-xl hover:shadow-brand-500/5",
+        "hover:shadow-xl hover:shadow-brand-500/5 hover:-translate-y-1",
         "no-underline block",
         className
       )}
     >
+      {/* Decorative Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
       {/* Image Header */}
       {imageUrl && (
         <div className={cn("overflow-hidden relative", aspectRatio)}>
           <img
             src={imageUrl}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            className="w-full h-full object-cover"
           />
           {/* Dark gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900/20 dark:to-gray-900/40 pointer-events-none" />
+
+          {/* Icon Badge - Top Right */}
+          {IconComponent && (
+            <div className="absolute top-6 left-6 w-12 h-12 rounded-2xl bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center transition-all duration-300 shadow-sm group-hover:scale-110 group-hover:bg-brand-500 group-hover:text-white">
+              <IconComponent className="w-8 h-8" strokeWidth={2} />
+            </div>
+          )}
         </div>
       )}
 
       {/* Content */}
       <div className="p-6 flex flex-col flex-1">
-        {/* Icon Badge */}
-        {IconComponent && (
-          <div className="w-12 h-12 bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center rounded-2xl mb-6 transition-transform duration-300 group-hover:scale-110">
-            <IconComponent className="w-6 h-6" strokeWidth={2} />
-          </div>
-        )}
-
         {/* Title */}
-        <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
+        <Heading level="h3" className="mb-3">
           {title}
-        </h3>
+        </Heading>
 
         {/* Description */}
-        <p className="text-md text-gray-500 dark:text-gray-400 leading-relaxed mb-6 flex-1">
+        <Paragraph size="base" color="secondary" className="mb-6 flex-1">
           {description}
-        </p>
+        </Paragraph>
 
         {/* Link Label */}
         {linkLabel && (
-          <div className="inline-flex items-center text-brand-500 font-bold text-md uppercase tracking-wider border-b-2 border-transparent group-hover:border-brand-500 transition-all pb-1 w-fit">
+          <div className="inline-flex items-center text-brand-500 font-bold text-md uppercase tracking-wider transition-colors group-hover:text-brand-600 w-fit">
             {linkLabel}
             <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
           </div>

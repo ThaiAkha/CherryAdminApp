@@ -105,10 +105,8 @@ const AdminHome: React.FC = () => {
                                     description={card.description || card.card_description}
                                     ctaLabel={card.cta_label || card.link_label || 'View More'}
                                     ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                                    icon={card.icon_name}
                                     variant={card.variant || 'dark'}
                                     className="flex items-center justify-between gap-6 p-13"
-
                                 />
                             ))}
                         </div>
