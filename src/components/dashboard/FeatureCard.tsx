@@ -59,12 +59,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   const IconComponent = icon ? getIcon(icon) : null;
 
   return (
-    <div
+    <Link
+      to={path}
       className={cn(
         "group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden",
         "shadow-sm border border-gray-100 dark:border-gray-800",
         "flex flex-col transition-all duration-300",
         "hover:shadow-xl hover:shadow-brand-500/5",
+        "no-underline block",
         className
       )}
     >
@@ -98,18 +100,15 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
           {description}
         </p>
 
-        {/* Link */}
+        {/* Link Label */}
         {linkLabel && (
-          <Link
-            to={path}
-            className="inline-flex items-center text-brand-500 font-bold text-md uppercase tracking-wider border-b-2 border-transparent hover:border-brand-500 transition-all pb-1 w-fit group/link"
-          >
+          <div className="inline-flex items-center text-brand-500 font-bold text-md uppercase tracking-wider border-b-2 border-transparent group-hover:border-brand-500 transition-all pb-1 w-fit">
             {linkLabel}
-            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/link:translate-x-1" />
-          </Link>
+            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+          </div>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 

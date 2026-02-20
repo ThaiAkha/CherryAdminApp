@@ -21,8 +21,8 @@ const DashboardNavCard: React.FC<DashboardNavCardProps> = ({
     linkLabel,
     className
 }) => {
-    // Get icon from registry
-    const IconComponent = getIcon(iconName);
+    // Get icon from registry, with fallback to LayoutDashboard
+    const IconComponent = getIcon(iconName) || getIcon('LayoutDashboard');
 
     return (
         <Link

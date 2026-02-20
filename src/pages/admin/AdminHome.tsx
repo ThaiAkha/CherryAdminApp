@@ -81,7 +81,7 @@ const AdminHome: React.FC = () => {
                                 <div key={card.id}>
                                     <DashboardNavCard
                                         path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                                        iconName={card.icon}
+                                        iconName={card.icon_name}
                                         label={card.title || card.card_title}
                                         description={card.description || card.card_description}
                                         linkLabel={card.link_label}
@@ -105,7 +105,7 @@ const AdminHome: React.FC = () => {
                                     description={card.description || card.card_description}
                                     ctaLabel={card.cta_label || card.link_label || 'View More'}
                                     ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                                    icon={card.icon}
+                                    icon={card.icon_name}
                                     variant={card.variant || 'dark'}
                                     className="flex items-center justify-between gap-6 p-13"
 
