@@ -147,7 +147,6 @@ const InventoryContent: React.FC<InventoryContentProps> = ({
                     ))}
                 </TableBody>
             </Table>
-            )}
         </DataExplorerContent>
     );
 };
