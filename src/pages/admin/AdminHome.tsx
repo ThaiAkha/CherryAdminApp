@@ -62,11 +62,10 @@ const AdminHome: React.FC = () => {
 
     return (
         <PageContainer variant="full">
-            <div className="max-w-[1600px] mx-auto space-y-8">
-                {/* EDITORIAL GRID LAYOUT */}
-                <div className="grid grid-cols-12 gap-8">
-                    {/* HERO LARGE - 8 columns */}
-                    <div className="col-span-12 lg:col-span-8 h-[400px]">
+            <div className="max-w-[1600px] mx-auto">
+                {/* ROW 1: HERO SECTION (full width) */}
+                <div className="mb-8">
+                    <div className="h-[300px]">
                         <WelcomeHero
                             badge={pageMeta?.badge || 'Dashboard'}
                             titleMain={pageMeta?.titleMain || 'ADMIN'}
@@ -77,54 +76,64 @@ const AdminHome: React.FC = () => {
                             className="h-full shadow-2xl"
                         />
                     </div>
+                </div>
 
-                    {/* FEATURE CARDS - Dynamic from database */}
-                    {featureCards.map((card: any, index: number) => (
-                        <div
-                            key={card.id}
-                            className={index === 0 ? "col-span-12 md:col-span-6 lg:col-span-4 h-[400px]" : "col-span-12 md:col-span-6 lg:col-span-4"}
-                        >
-                            <FeatureCard
-                                title={card.title || card.card_title}
-                                description={card.description || card.card_description}
-                                imageUrl={card.image_url || card.card_image}
-                                icon={card.icon}
-                                path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                                linkLabel={card.link_label}
-                                aspectRatio="aspect-[4/3]"
-                                className={index === 0 ? "h-full" : ""}
-                            />
-                        </div>
-                    ))}
-
-                    {/* QUICK ACCESS CARDS STACK - 4 columns */}
-                    {navCards.length > 0 && (
-                        <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
+                {/* ROW 2: SIDEBAR + MAIN CONTENT */}
+                <div className="grid grid-cols-12 gap-8">
+                    {/* SIDEBAR (3 col) - Nav cards */}
+                    <div className="col-span-12 md:col-span-4 lg:col-span-3">
+                        <div className="flex flex-col gap-6 sticky top-8">
                             {navCards.map((card: any) => (
-                                <DashboardNavCard
+                                <div key={card.id}>
+                                    <DashboardNavCard
+                                        path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                                        iconName={card.icon}
+                                        label={card.title || card.card_title}
+                                        description={card.description || card.card_description}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* MAIN CONTENT (9 col) - Features + CTA */}
+                    <div className="col-span-12 md:col-span-8 lg:col-span-9">
+                        {/* Features Grid */}
+                        {featureCards.length > 0 && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                {featureCards.map((card: any) => (
+                                    <FeatureCard
+                                        key={card.id}
+                                        title={card.title || card.card_title}
+                                        description={card.description || card.card_description}
+                                        imageUrl={card.image_url || card.card_image}
+                                        icon={card.icon}
+                                        path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                                        linkLabel={card.link_label}
+                                        aspectRatio="aspect-[3/1]"
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* CTA Banners */}
+                        <div className="space-y-6">
+                            {ctaBanners.map((card: any) => (
+                                <CTABanner
                                     key={card.id}
-                                    path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                                    iconName={card.icon}
-                                    label={card.title || card.card_title}
+                                    title={card.title || card.card_title}
                                     description={card.description || card.card_description}
+                                    ctaLabel={card.cta_label || card.link_label || 'View More'}
+                                    ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                                    icon={card.icon}
+                                    variant={card.variant || 'dark'}
+                                    className="flex items-center justify-between gap-6 p-12"
+
                                 />
                             ))}
                         </div>
-                    )}
+                    </div>
                 </div>
-
-                {/* CTA BANNERS - Dynamic from database */}
-                {ctaBanners.map((card: any) => (
-                    <CTABanner
-                        key={card.id}
-                        title={card.title || card.card_title}
-                        description={card.description || card.card_description}
-                        ctaLabel={card.cta_label || card.link_label || 'View More'}
-                        ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
-                        icon={card.icon}
-                        variant={card.variant || 'dark'}
-                    />
-                ))}
             </div>
         </PageContainer>
     );

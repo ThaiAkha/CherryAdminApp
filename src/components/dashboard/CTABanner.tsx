@@ -65,10 +65,13 @@ const CTABanner: React.FC<CTABannerProps> = ({
   };
 
   return (
-    <div
+    <Link
+      to={ctaPath}
       className={cn(
-        "rounded-[3rem] p-12 flex flex-col md:flex-row items-center justify-between",
+        "rounded-3xl p-12 flex flex-col md:flex-row items-center justify-between",
         "shadow-2xl overflow-hidden relative",
+        "transition-all hover:shadow-lg hover:scale-[1.02] active:scale-95",
+        "block no-underline",
         variantStyles[variant],
         className
       )}
@@ -111,11 +114,10 @@ const CTABanner: React.FC<CTABannerProps> = ({
       </div>
 
       {/* CTA Button */}
-      <div className="relative z-10">
-        <Link
-          to={ctaPath}
+      <div className="relative z-10 flex-shrink-0">
+        <div
           className={cn(
-            "px-8 py-4 font-bold rounded-2xl transition-all flex items-center gap-3",
+            "px-6 py-3 text-sm font-bold rounded-xl transition-all inline-flex items-center gap-2",
             "hover:scale-105 active:scale-95",
             variant === 'dark' || variant === 'brand'
               ? 'bg-white text-gray-900 hover:bg-gray-100'
@@ -123,10 +125,10 @@ const CTABanner: React.FC<CTABannerProps> = ({
           )}
         >
           {ctaLabel}
-          {IconComponent && <IconComponent className="w-5 h-5" />}
-        </Link>
+          {IconComponent && <IconComponent className="w-4 h-4" />}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
