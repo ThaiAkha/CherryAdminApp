@@ -17,6 +17,7 @@ import CTABanner from '../../components/dashboard/CTABanner';
 const AdminHome: React.FC = () => {
     const { setPageHeader } = usePageHeader();
     const [pageMeta, setPageMeta] = useState<any>(null);
+    const [homeCards, setHomeCards] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -30,6 +31,10 @@ const AdminHome: React.FC = () => {
                 } else {
                     setPageHeader('Admin Home', 'Central command for operations');
                 }
+
+                // Load home cards from database
+                const cards = await contentService.getHomeCards();
+                setHomeCards(cards || []);
             } catch (error) {
                 console.error("Failed to load admin home data:", error);
             } finally {
@@ -49,6 +54,11 @@ const AdminHome: React.FC = () => {
         );
     }
 
+    // Separate cards by type
+    const featureCards = homeCards.filter(card => card.card_type === 'feature');
+    const navCards = homeCards.filter(card => card.card_type === 'nav');
+    const ctaBanners = homeCards.filter(card => card.card_type === 'cta');
+
     return (
         <PageContainer variant="full">
             <div className="max-w-[1600px] mx-auto space-y-8">
@@ -67,73 +77,53 @@ const AdminHome: React.FC = () => {
                         />
                     </div>
 
-                    {/* FEATURE CARD - Inventory Store - 4 columns */}
-                    <div className="col-span-12 md:col-span-6 lg:col-span-4 h-[400px]">
-                        <FeatureCard
-                            title="Inventory Store"
-                            description="Manage product catalog, stock levels, and precise ingredient pricing."
-                            imageUrl="https://images.unsplash.com/photo-1556910101-ff37c7cb3668?w=800&auto=format&fit=crop"
-                            icon="Package"
-                            path="/admin-inventory"
-                            linkLabel="Go to Store"
-                            aspectRatio="aspect-[4/3]"
-                            className="h-full"
-                        />
-                    </div>
-
-                    {/* FEATURE CARD - Hotel List - 4 columns */}
-                    <div className="col-span-12 md:col-span-6 lg:col-span-4">
-                        <FeatureCard
-                            title="Hotel List"
-                            description="Add hotels, map GPS coordinates, and assign dynamic pickup zones for classes."
-                            imageUrl="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop"
-                            icon="Hotel"
-                            path="/admin-hotels"
-                            linkLabel="Go to Hotel List"
-                        />
-                    </div>
-
-                    {/* FEATURE CARD - Calendar - 4 columns */}
-                    <div className="col-span-12 md:col-span-6 lg:col-span-4">
-                        <FeatureCard
-                            title="Manage Calendar"
-                            description="Coordinate class sessions, seasonal closures, and guide availability in real-time."
-                            imageUrl="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop"
-                            icon="CalendarDays"
-                            path="/admin-calendar"
-                            linkLabel="Go to Calendar"
-                        />
-                    </div>
+                    {/* FEATURE CARDS - Dynamic from database */}
+                    {featureCards.map((card, index) => (
+                        <div
+                            key={card.id}
+                            className={index === 0 ? "col-span-12 md:col-span-6 lg:col-span-4 h-[400px]" : "col-span-12 md:col-span-6 lg:col-span-4"}
+                        >
+                            <FeatureCard
+                                title={card.title || card.card_title}
+                                description={card.description || card.card_description}
+                                imageUrl={card.image_url || card.card_image}
+                                icon={card.icon}
+                                path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                                linkLabel={card.link_label}
+                                aspectRatio="aspect-[4/3]"
+                                className={index === 0 ? "h-full" : ""}
+                            />
+                        </div>
+                    ))}
 
                     {/* QUICK ACCESS CARDS STACK - 4 columns */}
-                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
-                        {/* Database */}
-                        <DashboardNavCard
-                            path="/admin-database"
-                            iconName="Database"
-                            label="System Database"
-                            description="Core logs, system health, and raw data viewer."
-                        />
-
-                        {/* Storage */}
-                        <DashboardNavCard
-                            path="/admin-storage"
-                            iconName="FolderOpen"
-                            label="Media Storage"
-                            description="Manage high-res uploads and brand assets."
-                        />
-                    </div>
+                    {navCards.length > 0 && (
+                        <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
+                            {navCards.map(card => (
+                                <DashboardNavCard
+                                    key={card.id}
+                                    path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                                    iconName={card.icon}
+                                    label={card.title || card.card_title}
+                                    description={card.description || card.card_description}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* CTA BANNER - Full Width */}
-                <CTABanner
-                    title="Executive Reports & Intelligence"
-                    description="Track revenue stats, driver payroll efficiency, and operational KPIs for the current quarter."
-                    ctaLabel="View Reports"
-                    ctaPath="/admin-reports"
-                    icon="BarChart3"
-                    variant="dark"
-                />
+                {/* CTA BANNERS - Dynamic from database */}
+                {ctaBanners.map(card => (
+                    <CTABanner
+                        key={card.id}
+                        title={card.title || card.card_title}
+                        description={card.description || card.card_description}
+                        ctaLabel={card.cta_label || card.link_label || 'View More'}
+                        ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
+                        icon={card.icon}
+                        variant={card.variant || 'dark'}
+                    />
+                ))}
             </div>
         </PageContainer>
     );
