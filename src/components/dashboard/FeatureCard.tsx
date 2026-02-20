@@ -42,7 +42,7 @@ export interface FeatureCardProps {
   /** Custom className */
   className?: string;
 
-  /** Image aspect ratio class (default: aspect-[4/3]) */
+  /** Image aspect ratio class (default: aspect-[5/2]) */
   aspectRatio?: string;
 }
 
@@ -54,7 +54,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
   path,
   linkLabel,
   className,
-  aspectRatio = 'aspect-[4/3]'
+  aspectRatio = 'aspect-[5/2.4]'
 }) => {
   const IconComponent = icon ? getIcon(icon) : null;
 
@@ -80,7 +80,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
       )}
 
       {/* Content */}
-      <div className="p-8 flex flex-col flex-1">
+      <div className="p-6 flex flex-col flex-1">
         {/* Icon Badge */}
         {IconComponent && (
           <div className="w-12 h-12 bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center rounded-2xl mb-6 transition-transform duration-300 group-hover:scale-110">
@@ -94,18 +94,20 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6 flex-1">
+        <p className="text-md text-gray-500 dark:text-gray-400 leading-relaxed mb-6 flex-1">
           {description}
         </p>
 
         {/* Link */}
-        <Link
-          to={path}
-          className="inline-flex items-center text-brand-500 font-bold text-xs uppercase tracking-wider border-b-2 border-transparent hover:border-brand-500 transition-all pb-1 w-fit group/link"
-        >
-          {linkLabel || `Go to ${title}`}
-          <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/link:translate-x-1" />
-        </Link>
+        {linkLabel && (
+          <Link
+            to={path}
+            className="inline-flex items-center text-brand-500 font-bold text-md uppercase tracking-wider border-b-2 border-transparent hover:border-brand-500 transition-all pb-1 w-fit group/link"
+          >
+            {linkLabel}
+            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/link:translate-x-1" />
+          </Link>
+        )}
       </div>
     </div>
   );
