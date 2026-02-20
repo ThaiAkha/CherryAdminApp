@@ -34,6 +34,7 @@ const AdminHome: React.FC = () => {
 
                 // Load home cards from database
                 const cards = await contentService.getHomeCards();
+                console.log('🏠 Home Cards loaded:', cards);
                 setHomeCards(cards || []);
             } catch (error) {
                 console.error("Failed to load admin home data:", error);
@@ -54,10 +55,74 @@ const AdminHome: React.FC = () => {
         );
     }
 
-    // Separate cards by type
+    // Separate cards by type OR use fallback data
     const featureCards = homeCards.filter(card => card.card_type === 'feature');
     const navCards = homeCards.filter(card => card.card_type === 'nav');
     const ctaBanners = homeCards.filter(card => card.card_type === 'cta');
+
+    // Fallback: if no cards in database, show default cards
+    const defaultFeatureCards = [
+        {
+            id: 'inventory',
+            title: 'Inventory Store',
+            description: 'Manage product catalog, stock levels, and precise ingredient pricing.',
+            image_url: 'https://images.unsplash.com/photo-1556910101-ff37c7cb3668?w=800&auto=format&fit=crop',
+            icon: 'Package',
+            target_path: 'admin-inventory',
+            link_label: 'Go to Store'
+        },
+        {
+            id: 'hotels',
+            title: 'Hotel List',
+            description: 'Add hotels, map GPS coordinates, and assign dynamic pickup zones for classes.',
+            image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop',
+            icon: 'Hotel',
+            target_path: 'admin-hotels',
+            link_label: 'Go to Hotel List'
+        },
+        {
+            id: 'calendar',
+            title: 'Manage Calendar',
+            description: 'Coordinate class sessions, seasonal closures, and guide availability in real-time.',
+            image_url: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop',
+            icon: 'CalendarDays',
+            target_path: 'admin-calendar',
+            link_label: 'Go to Calendar'
+        }
+    ];
+
+    const defaultNavCards = [
+        {
+            id: 'database',
+            title: 'System Database',
+            description: 'Core logs, system health, and raw data viewer.',
+            icon: 'Database',
+            target_path: 'admin-database'
+        },
+        {
+            id: 'storage',
+            title: 'Media Storage',
+            description: 'Manage high-res uploads and brand assets.',
+            icon: 'FolderOpen',
+            target_path: 'admin-storage'
+        }
+    ];
+
+    const defaultCtaBanners = [
+        {
+            id: 'reports',
+            title: 'Executive Reports & Intelligence',
+            description: 'Track revenue stats, driver payroll efficiency, and operational KPIs for the current quarter.',
+            cta_label: 'View Reports',
+            target_path: 'admin-reports',
+            icon: 'BarChart3',
+            variant: 'dark'
+        }
+    ];
+
+    const displayFeatureCards = featureCards.length > 0 ? featureCards : defaultFeatureCards;
+    const displayNavCards = navCards.length > 0 ? navCards : defaultNavCards;
+    const displayCtaBanners = ctaBanners.length > 0 ? ctaBanners : defaultCtaBanners;
 
     return (
         <PageContainer variant="full">
@@ -78,7 +143,7 @@ const AdminHome: React.FC = () => {
                     </div>
 
                     {/* FEATURE CARDS - Dynamic from database */}
-                    {featureCards.map((card, index) => (
+                    {displayFeatureCards.map((card, index) => (
                         <div
                             key={card.id}
                             className={index === 0 ? "col-span-12 md:col-span-6 lg:col-span-4 h-[400px]" : "col-span-12 md:col-span-6 lg:col-span-4"}
@@ -97,9 +162,9 @@ const AdminHome: React.FC = () => {
                     ))}
 
                     {/* QUICK ACCESS CARDS STACK - 4 columns */}
-                    {navCards.length > 0 && (
+                    {displayNavCards.length > 0 && (
                         <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
-                            {navCards.map(card => (
+                            {displayNavCards.map(card => (
                                 <DashboardNavCard
                                     key={card.id}
                                     path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
@@ -113,7 +178,7 @@ const AdminHome: React.FC = () => {
                 </div>
 
                 {/* CTA BANNERS - Dynamic from database */}
-                {ctaBanners.map(card => (
+                {displayCtaBanners.map(card => (
                     <CTABanner
                         key={card.id}
                         title={card.title || card.card_title}

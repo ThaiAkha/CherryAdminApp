@@ -166,12 +166,6 @@ const AppSidebar: React.FC = () => {
             <div style={{ overflow: 'visible' }}>
               <ul className="flex flex-col gap-1" style={{ overflow: 'visible' }}>
                 {filterByRole(menuItems).map(renderNavItem)}
-                {user?.role === 'admin' && renderNavItem({
-                  icon: 'Palette',
-                  name: "UI Showcase",
-                  path: "/admin/showcase",
-                  allowedRoles: ["admin"]
-                })}
               </ul>
             </div>
           </div>
