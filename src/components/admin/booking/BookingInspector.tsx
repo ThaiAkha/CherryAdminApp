@@ -7,10 +7,9 @@ import { PaymentStatus } from '../../../hooks/useAdminBooking';
 interface BookingInspectorProps {
     pax: number;
     amount: number;
+    pricePerHead: number;
     paymentStatus: PaymentStatus;
     onPaymentStatusChange: (s: PaymentStatus) => void;
-    status: 'confirmed' | 'pending';
-    onStatusChange: (s: 'confirmed' | 'pending') => void;
     onConfirm: () => void;
     loading: boolean;
 }
@@ -18,10 +17,9 @@ interface BookingInspectorProps {
 const BookingInspector: React.FC<BookingInspectorProps> = ({
     pax,
     amount,
+    pricePerHead,
     paymentStatus,
     onPaymentStatusChange,
-    status,
-    onStatusChange,
     onConfirm,
     loading
 }) => {
@@ -37,7 +35,7 @@ const BookingInspector: React.FC<BookingInspectorProps> = ({
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-sm font-bold text-gray-500">Price / Head</span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">1,200 THB</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{pricePerHead.toLocaleString()} THB</span>
                     </div>
                     <div className="pt-4 border-t border-dashed border-gray-200">
                         <div className="flex justify-between items-end">
@@ -56,11 +54,6 @@ const BookingInspector: React.FC<BookingInspectorProps> = ({
                     <button onClick={() => onPaymentStatusChange('paid')} className={cn("py-2 text-[10px] font-black uppercase rounded-md transition-all", paymentStatus === 'paid' ? "bg-white shadow text-green-600" : "text-gray-400 hover:text-gray-600")}>Paid</button>
                 </div>
 
-                {/* Status Toggle */}
-                <div className="mt-2 p-1 bg-gray-100 dark:bg-gray-900 rounded-lg grid grid-cols-2 gap-1">
-                    <button onClick={() => onStatusChange('pending')} className={cn("py-2 text-[10px] font-black uppercase rounded-md transition-all", status === 'pending' ? "bg-white shadow text-orange-500" : "text-gray-400 hover:text-gray-600")}>Pending</button>
-                    <button onClick={() => onStatusChange('confirmed')} className={cn("py-2 text-[10px] font-black uppercase rounded-md transition-all", status === 'confirmed' ? "bg-white shadow text-brand-600" : "text-gray-400 hover:text-gray-600")}>Confirmed</button>
-                </div>
 
                 <Button
                     variant="primary"

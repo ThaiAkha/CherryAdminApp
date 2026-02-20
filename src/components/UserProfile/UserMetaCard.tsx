@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
@@ -9,7 +7,7 @@ import { Camera } from "lucide-react";
 
 export default function UserMetaCard() {
   const { user, updateProfile, uploadAvatar } = useAuth();
-  const { isOpen, openModal, closeModal } = useModal();
+  const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -41,7 +39,6 @@ export default function UserMetaCard() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-
   const handleSave = async () => {
     if (!user) return;
     try {
@@ -51,7 +48,7 @@ export default function UserMetaCard() {
         agency_phone: formData.phone,
         agency_company_name: formData.bio
       });
-      closeModal();
+      setIsEditing(false);
     } catch (error) {
       console.error("Failed to update profile", error);
     }
@@ -77,140 +74,115 @@ export default function UserMetaCard() {
   };
 
   return (
-    <>
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-col items-center w-full gap-6 xl:flex-row">
-            <div className="relative group">
-              <div className="w-24 h-24 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 transition-all duration-300 group-hover:opacity-90">
-                <img
-                  src={user?.avatar_url || "/images/user/owner.jpg"}
-                  alt="user"
-                  className="object-cover w-full h-full text-[10px]"
-                />
-              </div>
-              <button
-                onClick={handleAvatarClick}
-                disabled={isUploading}
-                className="absolute bottom-0 right-0 flex items-center justify-center w-8 h-8 text-white transition-all duration-300 bg-brand-600 rounded-full hover:scale-110 disabled:bg-gray-400 shadow-lg"
-              >
-                {isUploading ? (
-                  <div className="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
-                ) : (
-                  <Camera className="w-4 h-4" />
-                )}
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
+    <div className="p-6 lg:p-8 rounded-3xl border border-brand-100/50 dark:border-brand-500/10 bg-gradient-to-br from-brand-50/50 to-white dark:from-brand-500/5 dark:to-transparent backdrop-blur-xl shadow-sm">
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col items-center w-full gap-8 xl:flex-row">
+          <div className="relative group">
+            <div className="w-28 h-28 lg:w-32 lg:h-32 overflow-hidden border-2 border-white rounded-full dark:border-gray-800 transition-all duration-300 group-hover:opacity-90 shadow-brand-500/20 shadow-xl">
+              <img
+                src={user?.avatar_url || "/images/user/owner.jpg"}
+                alt="user"
+                className="object-cover w-full h-full text-[10px]"
               />
             </div>
-            <div className="order-3 xl:order-2">
-              <h4 className="mb-2 text-2xl font-black italic uppercase tracking-tighter text-center text-gray-900 dark:text-white xl:text-left">
-                {user?.full_name || "User"}
-              </h4>
-              <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-                <p className="text-xs font-black uppercase tracking-widest text-brand-600 dark:text-brand-400">
-                  {user?.role ? user.role.toUpperCase() : "GUEST"}
-                </p>
-                <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {user?.agency_country || "Thailand"}
-                </p>
-              </div>
-            </div>
+            <button
+              onClick={handleAvatarClick}
+              disabled={isUploading}
+              className="absolute bottom-1 right-1 flex items-center justify-center w-10 h-10 text-white transition-all duration-300 bg-brand-600 rounded-full hover:scale-110 disabled:bg-gray-400 shadow-lg border-2 border-white dark:border-gray-900"
+            >
+              {isUploading ? (
+                <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+              ) : (
+                <Camera className="w-5 h-5" />
+              )}
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
-          <button
-            onClick={openModal}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto transition-all duration-200 active:scale-95"
-          >
-            Edit Settings
-          </button>
-        </div>
-      </div>
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-black italic uppercase tracking-tighter text-gray-900 dark:text-white">
-              Edit Profile Info
-            </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Manage your global profile settings and company information.
-            </p>
-          </div>
-          <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-            <div className="custom-scrollbar h-auto max-h-[50vh] overflow-y-auto px-2 pb-3">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>First Name</Label>
+          <div className="order-3 xl:order-2 flex-1 w-full">
+            {isEditing ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <Label className="text-[10px] uppercase tracking-widest text-brand-600 mb-1 block">First Name</Label>
                   <Input
-                    type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="Enter first name"
+                    className="bg-white/50 backdrop-blur-sm"
                   />
                 </div>
-
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>Last Name</Label>
+                <div>
+                  <Label className="text-[10px] uppercase tracking-widest text-brand-600 mb-1 block">Last Name</Label>
                   <Input
-                    type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Enter last name"
+                    className="bg-white/50 backdrop-blur-sm"
                   />
                 </div>
-
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>Email Address</Label>
+                <div className="md:col-span-2">
+                  <Label className="text-[10px] uppercase tracking-widest text-brand-600 mb-1 block">Company / Agency Name</Label>
                   <Input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    disabled
-                    className="cursor-not-allowed opacity-50 bg-gray-50 dark:bg-gray-800"
-                  />
-                </div>
-
-                <div className="col-span-2 lg:col-span-1">
-                  <Label>Phone</Label>
-                  <Input
-                    type="text"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <Label>Agency Company Name</Label>
-                  <Input
-                    type="text"
                     name="bio"
                     value={formData.bio}
                     onChange={handleChange}
-                    placeholder="Enter your agency name"
+                    className="bg-white/50 backdrop-blur-sm"
                   />
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3 px-2 mt-8 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal} className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                Cancel
-              </Button>
-              <Button size="sm" type="submit" className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                Save Changes
-              </Button>
-            </div>
-          </form>
+            ) : (
+              <>
+                <div className="flex flex-col items-center gap-2 text-center xl:flex-row xl:gap-4 xl:text-left">
+                  <p className="text-sm font-black uppercase tracking-widest text-brand-600 dark:text-brand-400 bg-brand-500/10 px-3 py-1 rounded-full">
+                    {user?.role ? user.role.toUpperCase() : "GUEST"}
+                  </p>
+                  <div className="hidden h-4 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
+                  <h4 className="text-xl lg:text-2xl font-black italic uppercase tracking-tighter text-gray-900 dark:text-white">
+                    {user?.full_name || "User"}
+                  </h4>
+                </div>
+                {user?.agency_company_name && (
+                  <p className="mt-2 text-xs font-bold text-gray-400 uppercase tracking-widest text-center xl:text-left">
+                    {user.agency_company_name}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </Modal>
-    </>
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto items-center">
+          {isEditing ? (
+            <>
+              <Button
+                onClick={() => setIsEditing(false)}
+                variant="outline"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-xs"
+              >
+                ANNULLA
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-xs"
+              >
+                SALVA
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="outline"
+              className="w-full lg:w-auto px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-sm hover:shadow-md transition-all active:scale-95"
+            >
+              MODIFICA
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

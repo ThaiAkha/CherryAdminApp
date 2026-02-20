@@ -361,46 +361,50 @@ export function useAdminHotels() {
     }), [meetingPoints, searchQuery]);
 
     return {
-        // Data
-        hotels,
-        zones,
-        meetingPoints,
-        filteredHotels,
-        filteredMeetingPoints,
-        loading,
-        saving,
+        // Core Data
+        data: {
+            hotels,
+            zones,
+            meetingPoints,
+            filteredHotels,
+            filteredMeetingPoints,
+            loading,
+            fetchData,
+        },
 
-        // UI State
-        activeTab,
-        setActiveTab,
-        selectedZone,
-        setSelectedZone,
-        searchQuery,
-        setSearchQuery,
-        viewMode,
-        setViewMode,
+        // UI & Navigation
+        ui: {
+            activeTab,
+            setActiveTab,
+            selectedZone,
+            setSelectedZone,
+            searchQuery,
+            setSearchQuery,
+            viewMode,
+            setViewMode,
+            handleSidebarSelect,
+        },
 
-        // Inspector State
-        selectedHotel,
-        selectedMeetingPoint,
-        isEditing,
-        setIsEditing,
-        isCreating,
-        form,
-        setForm,
-
-        // Handlers
-        fetchData,
-        handleMapLinkChange,
-        handleManualGPSChange,
-        handleSidebarSelect,
-        selectHotel,
-        selectMeetingPoint,
-        startCreate,
-        startCreateMeetingPoint,
-        handleSave,
-        handleSaveMeetingPoint,
-        closeInspector,
-        setSelectedMeetingPoint,
+        // Inspector & Editing
+        inspector: {
+            selectedHotel,
+            selectedMeetingPoint,
+            setSelectedMeetingPoint,
+            isEditing,
+            setIsEditing,
+            isCreating,
+            saving,
+            form,
+            setForm,
+            selectHotel,
+            selectMeetingPoint,
+            startCreate,
+            startCreateMeetingPoint,
+            handleSave,
+            handleSaveMeetingPoint,
+            closeInspector,
+            handleMapLinkChange,
+            handleManualGPSChange,
+        }
     };
 }

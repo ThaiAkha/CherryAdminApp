@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { usePageHeader } from '../../context/PageHeaderContext';
 import { contentService } from '../../services/content.service';
@@ -19,6 +19,28 @@ import PageContainer from '../../components/layout/PageContainer';
 import PageGrid from '../../components/layout/PageGrid';
 
 // --- TYPES ---
+interface ChecklistDisplayItem {
+  id: string;
+  name: string;
+  qty: number;
+  unit: string;
+  price: number;
+}
+
+// Normalizes both formState entries [id, {qty,price}] and DraftItem snapshots
+// to a common display shape, resolving names/units from the library where needed.
+function normalizeEntry(
+  entry: [string, { qty: number; price: number }] | DraftItem,
+  lib: LibraryItem[]
+): ChecklistDisplayItem {
+  if (Array.isArray(entry)) {
+    const [id, val] = entry;
+    const libItem = lib.find(l => l.id === id);
+    return { id, name: libItem?.name_en || '', qty: val.qty, unit: libItem?.unit_default || 'unit', price: val.price };
+  }
+  return { id: entry.id, name: entry.name, qty: entry.quantity, unit: entry.unit, price: entry.price };
+}
+
 interface LibraryItem {
   id: string;
   name_en: string;
@@ -109,7 +131,7 @@ const MarketShop: React.FC = () => {
     loadMetadata();
   }, [setPageHeader]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [libRes, runRes] = await Promise.all([
         supabase.from('ingredients_library').select('*').order('name_en'),
@@ -120,9 +142,9 @@ const MarketShop: React.FC = () => {
     } catch (err) {
       console.error("Market Console Sync Error:", err);
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   // --- 2. HYDRATION LOGIC ---
   const hydrateDraft = (run: MarketRun) => {
@@ -173,6 +195,12 @@ const MarketShop: React.FC = () => {
     });
     return ['All', ...Array.from(shops).sort()];
   }, [library, activeScope]);
+
+  // Filtered history for the active tab — computed once, used in both table and empty-state check
+  const filteredHistory = useMemo<MarketRun[]>(
+    () => history.filter(r => r.shopper_role === activeTab),
+    [history, activeTab]
+  );
 
   // --- 4. WORKSPACE ACTIONS ---
   const handleToggleLogistics = (itemId: string) => {
@@ -251,8 +279,9 @@ const MarketShop: React.FC = () => {
       alert("Changes saved successfully kha!");
       fetchData();
       setActiveTab('dashboard');
-    } catch (err: any) {
-      alert("Error saving: " + err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      alert("Error saving: " + message);
     } finally {
       setIsSaving(false);
     }
@@ -374,7 +403,7 @@ const MarketShop: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                      {history.filter(r => r.shopper_role === activeTab).map((row) => (
+                      {filteredHistory.map((row: MarketRun) => (
                         <tr
                           key={row.id}
                           onClick={() => setSelectedRun(row)}
@@ -398,7 +427,7 @@ const MarketShop: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
-                  {history.filter(r => r.shopper_role === activeTab).length === 0 && (
+                  {filteredHistory.length === 0 && (
                     <div className="p-12 text-center text-gray-400">
                       <History className="w-12 h-12 mx-auto mb-3 opacity-20" />
                       <p>No history found for this category.</p>
@@ -446,7 +475,7 @@ const MarketShop: React.FC = () => {
                     <ShopItemCard
                       key={item.id}
                       item={item}
-                      mode={activeTab as any}
+                      mode={activeTab as 'logistics' | 'teacher'}
                       price={formState[item.id]?.price || 0}
                       isAdded={!!formState[item.id]}
                       onToggle={() => handleToggleLogistics(item.id)}
@@ -505,27 +534,25 @@ const MarketShop: React.FC = () => {
           <h4 className="text-xs font-bold uppercase text-gray-500 mb-4 flex items-center gap-2"><ShoppingCart className="w-4 h-4" /> Item Checklist</h4>
 
           <div className="space-y-3 pb-32">
-            {(viewMode === 'list' && selectedRun ? selectedRun.items_snapshot : Object.entries(formState)).map((entry: any) => {
-              const id = Array.isArray(entry) ? entry[0] : entry.id;
-              const val = Array.isArray(entry) ? entry[1] : entry;
-              const libItem = library.find(l => l.id === id);
+            {(viewMode === 'list' && selectedRun ? selectedRun.items_snapshot : Object.entries(formState)).map((entry) => {
+              const item = normalizeEntry(entry as [string, { qty: number; price: number }] | DraftItem, library);
 
               return (
                 <div
-                  key={id}
-                  onClick={() => viewMode === 'planner' && activeTab === 'teacher' && openKeypad(id)}
+                  key={item.id}
+                  onClick={() => viewMode === 'planner' && activeTab === 'teacher' && openKeypad(item.id)}
                   className={cn(
                     "flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 rounded-xl transition-all",
                     (viewMode === 'planner' && activeTab === 'teacher') && "cursor-pointer hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20"
                   )}
                 >
                   <div className="min-w-0">
-                    <div className="font-bold text-xs text-gray-900 dark:text-gray-100 uppercase truncate">{libItem?.name_en || val.name}</div>
-                    <div className="text-[10px] text-gray-400 font-mono font-medium">x{val.qty || val.quantity} {libItem?.unit_default || val.unit}</div>
+                    <div className="font-bold text-xs text-gray-900 dark:text-gray-100 uppercase truncate">{item.name}</div>
+                    <div className="text-[10px] text-gray-400 font-mono font-medium">x{item.qty} {item.unit}</div>
                   </div>
                   {(activeTab === 'teacher' || (selectedRun && selectedRun.shopper_role === 'teacher')) && (
                     <div className="text-right">
-                      <div className="font-mono font-black text-brand-600 dark:text-brand-400 text-sm">{val.price} <span className="text-[9px] opacity-40">THB</span></div>
+                      <div className="font-mono font-black text-brand-600 dark:text-brand-400 text-sm">{item.price} <span className="text-[9px] opacity-40">THB</span></div>
                       {viewMode === 'planner' && <span className="text-[8px] uppercase font-bold text-gray-300 block">Tap to edit</span>}
                     </div>
                   )}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
 import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
 import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
@@ -12,6 +12,7 @@ import { contentService } from "../../services/content.service";
 import { Link } from 'react-router';
 import { Calendar, Plus, Home } from 'lucide-react';
 import Button from '../../components/ui/button/Button';
+import WelcomeHero from "../../components/dashboard/WelcomeHero";
 
 const QuickActions = () => (
     <div className="flex items-center gap-2">
@@ -29,11 +30,13 @@ const QuickActions = () => (
 
 export default function AgencyDashboard() {
     const { setPageHeader } = usePageHeader();
+    const [pageMeta, setPageMeta] = useState<any>(null);
 
     useEffect(() => {
         const loadMetadata = async () => {
             const meta = await contentService.getPageMetadata('agency-dashboard');
             if (meta) {
+                setPageMeta(meta);
                 setPageHeader(
                     meta.titleMain || 'Agency Dashboard',
                     meta.description || 'Overview of sales, revenue, and guest demographics.',
@@ -49,10 +52,20 @@ export default function AgencyDashboard() {
     return (
         <>
             <PageMeta
-                title="Admin 1122 Dashboard | Thai Akha Kitchen"
-                description="To be set up later."
+                title="Agency Dashboard | Thai Akha Kitchen"
+                description="Overview of sales, revenue, and guest demographics."
             />
             <PageContainer variant="full">
+                {/* HERO SECTION */}
+                <WelcomeHero
+                    badge={pageMeta?.badge || 'Dashboard'}
+                    titleMain={pageMeta?.titleMain || 'Agency'}
+                    titleHighlight={pageMeta?.titleHighlight || 'Dashboard'}
+                    description={pageMeta?.description || 'Overview of sales, revenue, and guest demographics.'}
+                    imageUrl={pageMeta?.imageUrl}
+                    icon="LayoutDashboard"
+                />
+
                 <div className="pb-20 space-y-8">
                     <div className="col-span-12 space-y-6">
                         <EcommerceMetrics />

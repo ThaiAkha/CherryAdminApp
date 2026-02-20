@@ -85,69 +85,68 @@ const InventoryContent: React.FC<InventoryContentProps> = ({
                 </div>
             )}
 
-            {filteredProducts.length > 0 && viewMode === 'table' && (
-                <Table className="text-xs whitespace-nowrap">
-                    <TableHeader className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
-                        <TableRow>
-                            <TableCell isHeader className="px-4 py-3 w-10">
+            <Table className="text-xs">
+                <TableHeader className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+                    <TableRow>
+                        <TableCell isHeader className="px-4 py-3 w-10">
+                            <Checkbox
+                                checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
+                                onChange={onToggleSelectAll}
+                            />
+                        </TableCell>
+                        <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">SKU</TableCell>
+                        <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Product Name</TableCell>
+                        <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Category</TableCell>
+                        <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center">Stock</TableCell>
+                        <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Price</TableCell>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredProducts.map((p, idx) => (
+                        <DataExplorerRow
+                            key={p.id}
+                            idx={idx}
+                            selected={editingProduct.id === p.id}
+                            onClick={() => onProductSelect(p)}
+                        >
+                            <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                 <Checkbox
-                                    checked={selectedIds.size === filteredProducts.length && filteredProducts.length > 0}
-                                    onChange={onToggleSelectAll}
+                                    checked={selectedIds.has(String(p.id))}
+                                    onChange={() => onToggleSelectRow(p)}
                                 />
                             </TableCell>
-                            <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">SKU</TableCell>
-                            <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Product Name</TableCell>
-                            <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500">Category</TableCell>
-                            <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 text-center">Stock</TableCell>
-                            <TableCell isHeader className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Price</TableCell>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredProducts.map((p, idx) => (
-                            <DataExplorerRow
-                                key={p.id}
-                                idx={idx}
-                                selected={editingProduct.id === p.id}
-                                onClick={() => onProductSelect(p)}
-                            >
-                                <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                    <Checkbox
-                                        checked={selectedIds.has(String(p.id))}
-                                        onChange={() => onToggleSelectRow(p)}
-                                    />
-                                </TableCell>
-                                <TableCell className="px-4 py-3">
-                                    <DataRowText
-                                        description={p.sku}
-                                    />
-                                </TableCell>
-                                <TableCell className="px-4 py-3">
-                                    <DataRowText
-                                        title={p.item_name}
-                                    />
-                                </TableCell>
-                                <TableCell className="px-4 py-3">
-                                    <DataRowText
-                                        extra={p.category_id}
-                                    />
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-tighter">
-                                    {p.stock_quantity < 5 ? (
-                                        <Badge color="error" size="sm">{p.stock_quantity}</Badge>
-                                    ) : (
-                                        <span className="text-gray-600 dark:text-gray-400">{p.stock_quantity}</span>
-                                    )}
-                                </TableCell>
-                                <TableCell className="px-4 py-3 text-right">
-                                    <DataRowText
-                                        title={formatCurrency(p.price_thb)}
-                                        className="text-brand-600 dark:text-brand-400"
-                                    />
-                                </TableCell>
-                            </DataExplorerRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                            <TableCell className="px-4 py-3">
+                                <DataRowText
+                                    description={p.sku}
+                                />
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                                <DataRowText
+                                    title={p.item_name}
+                                />
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                                <DataRowText
+                                    extra={p.category_id}
+                                />
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-tighter">
+                                {p.stock_quantity < 5 ? (
+                                    <Badge color="error" size="sm">{p.stock_quantity}</Badge>
+                                ) : (
+                                    <span className="text-gray-600 dark:text-gray-400">{p.stock_quantity}</span>
+                                )}
+                            </TableCell>
+                            <TableCell className="px-4 py-3 text-right">
+                                <DataRowText
+                                    title={formatCurrency(p.price_thb)}
+                                    className="text-brand-600 dark:text-brand-400"
+                                />
+                            </TableCell>
+                        </DataExplorerRow>
+                    ))}
+                </TableBody>
+            </Table>
             )}
         </DataExplorerContent>
     );

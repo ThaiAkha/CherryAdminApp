@@ -75,6 +75,7 @@ export const useAdminStorage = () => {
                 { id: 'Spicy Level', name: 'Spicy Level', public: true },
                 { id: 'song', name: 'Song', public: true },
                 { id: 'avatars', name: 'Avatars', public: true },
+                { id: 'avatars_user', name: 'User Avatars', public: true },
                 { id: 'showcase', name: 'Showcase', public: true }
             ];
 
@@ -94,6 +95,7 @@ export const useAdminStorage = () => {
                 { id: 'Spicy Level', name: 'Spicy Level', public: true },
                 { id: 'song', name: 'Song', public: true },
                 { id: 'avatars', name: 'Avatars', public: true },
+                { id: 'avatars_user', name: 'User Avatars', public: true },
                 { id: 'showcase', name: 'Showcase', public: true }
             ];
             setBuckets(fallbackBuckets);
@@ -250,36 +252,41 @@ export const useAdminStorage = () => {
     };
 
     return {
-        buckets,
-        selectedBucket,
-        setSelectedBucket,
-        files,
-        filteredFiles,
-        loading,
-        selectedFile,
-        isInspectorOpen,
-        searchTerm,
-        setSearchTerm,
-        isUploading,
-        copied,
-        pendingFile,
-        setPendingFile,
-        pendingFileName,
-        setPendingFileName,
-        viewMode,
-        setViewMode,
-        isEditing,
-        setIsEditing,
-        editingNameValue,
-        setEditingNameValue,
-        fetchFiles,
-        handleFileSelect,
-        handleCopyUrl,
-        handleDelete,
-        handleStageFile,
-        handleConfirmUpload,
-        handleRename,
-        getFilePreview,
-        closeInspector
+        data: {
+            buckets,
+            files,
+            filteredFiles,
+            loading,
+            fetchFiles,
+            getFilePreview,
+        },
+        ui: {
+            selectedBucket,
+            setSelectedBucket,
+            searchTerm,
+            setSearchTerm,
+            viewMode,
+            setViewMode,
+            copied,
+            handleCopyUrl,
+        },
+        inspector: {
+            selectedFile,
+            isInspectorOpen,
+            isUploading,
+            pendingFile,
+            pendingFileName,
+            setPendingFileName,
+            isEditing,
+            setIsEditing,
+            editingNameValue,
+            setEditingNameValue,
+            handleFileSelect,
+            handleDelete,
+            handleStageFile,
+            handleConfirmUpload,
+            handleRename,
+            closeInspector
+        }
     };
 };

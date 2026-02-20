@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
-import { authService } from '../../services/auth.service';
+import { authService, UserProfile } from '../../services/auth.service';
 import { cn } from '../../lib/utils';
 import {
     TrendingUp,
@@ -29,43 +29,108 @@ interface DriverPayment {
     session_id?: string;
 }
 
+interface DailyStats {
+    total_jobs: number;
+    completed_jobs: number;
+    pending_jobs: number;
+    total_pax: number;
+}
+
+// Returns the Monday of the current week at midnight
+function getStartOfWeek(from: Date): Date {
+    const d = new Date(from);
+    const day = d.getDay();
+    d.setDate(d.getDate() - day + (day === 0 ? -6 : 1));
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+const EMPTY_STATS: DailyStats = {
+    total_jobs: 0,
+    completed_jobs: 0,
+    pending_jobs: 0,
+    total_pax: 0,
+};
+
+const ACTIVE_TRANSPORT_STATUSES = ['waiting', 'driver_en_route', 'driver_arrived', 'on_board'];
+
 const DriverHome: React.FC = () => {
     const navigate = useNavigate();
     const { setPageHeader } = usePageHeader();
     const [payments, setPayments] = useState<DriverPayment[]>([]);
     const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<DailyStats>(EMPTY_STATS);
 
-    // 1. DATA MANAGEMENT STATE
-    const [activeDate] = useState(new Date().toISOString().split('T')[0]);
-    const [stats, setStats] = useState({
-        total_jobs: 0,
-        completed_jobs: 0,
-        pending_jobs: 0,
-        total_pax: 0
-    });
+    const activeDate = new Date().toISOString().split('T')[0];
 
-    // 2. Initial Load & Meta
+    // 1. Header metadata
     useEffect(() => {
-        const loadMetadata = async () => {
-            const subtitle = `System 4.8 / Driver Portal • ${activeDate}`;
-            const meta = await contentService.getPageMetadata('driver-home');
+        const subtitle = `System 4.8 / Driver Portal • ${activeDate}`;
+        contentService.getPageMetadata('driver-home').then(meta => {
             if (meta) {
                 setPageHeader(meta.titleMain || 'My Earnings', meta.description || subtitle);
             } else {
                 setPageHeader('My Earnings', subtitle);
             }
+        });
+    }, [activeDate, setPageHeader]);
+
+    // 2. Data init + 30s refresh
+    useEffect(() => {
+        const fetchPayments = async (uid: string) => {
+            const { data, error } = await supabase
+                .from('driver_payments')
+                .select('*')
+                .eq('driver_id', uid)
+                .order('run_date', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching payments:", error);
+                return;
+            }
+            setPayments(data || []);
         };
-        loadMetadata();
+
+        const fetchStats = async (profile: UserProfile) => {
+            try {
+                let query = supabase
+                    .from('bookings')
+                    .select('pax_count, transport_status, pickup_driver_uid')
+                    .eq('booking_date', activeDate)
+                    .neq('status', 'cancelled');
+
+                if (profile.role === 'driver') {
+                    query = query.or(`pickup_driver_uid.eq.${profile.id}, pickup_driver_uid.is.null`);
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+
+                if (data) {
+                    const calculated = data.reduce<DailyStats>((acc, b) => {
+                        acc.total_jobs += 1;
+                        acc.total_pax += (b.pax_count || 0);
+                        if (b.transport_status === 'dropped_off') {
+                            acc.completed_jobs += 1;
+                        } else if (ACTIVE_TRANSPORT_STATUSES.includes(b.transport_status)) {
+                            acc.pending_jobs += 1;
+                        }
+                        return acc;
+                    }, { ...EMPTY_STATS });
+
+                    setStats(calculated);
+                }
+            } catch (error) {
+                console.error("Error fetching stats:", error);
+            }
+        };
 
         const init = async () => {
             setLoading(true);
             try {
                 const profile = await authService.getCurrentUserProfile();
                 if (profile) {
-                    await Promise.all([
-                        fetchPayments(profile.id),
-                        fetchStats(profile)
-                    ]);
+                    await Promise.all([fetchPayments(profile.id), fetchStats(profile)]);
                 }
             } catch (error) {
                 console.error("Error initializing DriverHome:", error);
@@ -73,103 +138,35 @@ const DriverHome: React.FC = () => {
                 setLoading(false);
             }
         };
-        init();
 
-        // Refresh interval for stats
+        init();
         const interval = setInterval(init, 30000);
         return () => clearInterval(interval);
-    }, [activeDate, setPageHeader]);
+    }, [activeDate]);
 
-    // 3. FETCH PAYMENTS (Original Logic preserved)
-    const fetchPayments = async (uid: string) => {
-        const { data, error } = await supabase
-            .from('driver_payments')
-            .select('*')
-            .eq('driver_id', uid)
-            .order('run_date', { ascending: false });
-
-        if (error) {
-            console.error("Error fetching payments:", error);
-            return;
-        }
-        setPayments(data || []);
-    };
-
-    // 4. FETCH & AGGREGATE STATS (New Data Layer)
-    const fetchStats = async (userProfile: any) => {
-        try {
-            let query = supabase
-                .from('bookings')
-                .select('pax_count, transport_status, pickup_driver_uid')
-                .eq('booking_date', activeDate)
-                .neq('status', 'cancelled');
-
-            // Role-based filtering logic
-            if (userProfile.role === 'driver') {
-                query = query.or(`pickup_driver_uid.eq.${userProfile.id}, pickup_driver_uid.is.null`);
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-
-            if (data) {
-                const calculated = data.reduce((acc, b) => {
-                    acc.total_jobs += 1;
-                    acc.total_pax += (b.pax_count || 0);
-
-                    if (b.transport_status === 'dropped_off') {
-                        acc.completed_jobs += 1;
-                    } else if (['waiting', 'driver_en_route', 'driver_arrived', 'on_board'].includes(b.transport_status)) {
-                        acc.pending_jobs += 1;
-                    }
-
-                    return acc;
-                }, {
-                    total_jobs: 0,
-                    completed_jobs: 0,
-                    pending_jobs: 0,
-                    total_pax: 0
-                });
-
-                setStats(calculated);
-            }
-        } catch (error) {
-            console.error("Error fetching stats:", error);
-        }
-    };
-
-    // 5. Stats Calculation (Legacy totals for payments)
-    const weeklyTotal = useMemo(() => {
-        const now = new Date('2026-02-13'); // Using debug date as reference
-        const startOfWeek = new Date(now);
-        const day = startOfWeek.getDay();
-        const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Monday
-        startOfWeek.setDate(diff);
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        return payments
-            .filter(p => new Date(p.run_date) >= startOfWeek)
-            .reduce((acc, curr) => acc + (curr.payout_amount || 0), 0);
-    }, [payments]);
-
-    const lastWeekPayment = useMemo(() => {
-        const now = new Date('2026-02-13');
-        const startOfThisWeek = new Date(now);
-        const day = startOfThisWeek.getDay();
-        const diff = startOfThisWeek.getDate() - day + (day === 0 ? -6 : 1);
-        startOfThisWeek.setDate(diff);
-        startOfThisWeek.setHours(0, 0, 0, 0);
-
+    // 3. Week boundary — computed once, shared between both useMemos
+    const weekBoundaries = useMemo(() => {
+        const now = new Date();
+        const startOfThisWeek = getStartOfWeek(now);
         const startOfLastWeek = new Date(startOfThisWeek);
         startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+        return { startOfThisWeek, startOfLastWeek };
+    }, []);
 
-        return payments.find(p => {
+    const weeklyTotal = useMemo(() =>
+        payments
+            .filter(p => new Date(p.run_date) >= weekBoundaries.startOfThisWeek)
+            .reduce((acc, curr) => acc + (curr.payout_amount || 0), 0),
+        [payments, weekBoundaries]);
+
+    const lastWeekPayment = useMemo(() =>
+        payments.find(p => {
             const d = new Date(p.run_date);
-            return d >= startOfLastWeek && d < startOfThisWeek;
-        });
-    }, [payments]);
+            return d >= weekBoundaries.startOfLastWeek && d < weekBoundaries.startOfThisWeek;
+        }),
+        [payments, weekBoundaries]);
 
-    // 6. Render Helpers
+    // 4. Render helpers
     const formatDate = (dateStr: string) => {
         const d = new Date(dateStr);
         return {
@@ -181,7 +178,7 @@ const DriverHome: React.FC = () => {
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
             </div>
         );
     }
@@ -190,9 +187,13 @@ const DriverHome: React.FC = () => {
 
     return (
         <PageContainer variant="narrow" className="pb-24">
-            <PageHeader title="" subtitle={subtitle}>
-                {/* Navigation handled via menu and cards now */}
-            </PageHeader>
+            <WelcomeHero
+                badge="Driver Portal"
+                titleMain="My Earnings"
+                titleHighlight=""
+                description={subtitle}
+                icon="Wallet"
+            />
 
             <div className="space-y-6">
                 {/* 1. Reports Today (Priority Row) */}

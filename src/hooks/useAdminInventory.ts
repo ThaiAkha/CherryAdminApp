@@ -56,7 +56,7 @@ export const useAdminInventory = () => {
 
     useEffect(() => {
         const loadMeta = async () => {
-            const meta = await contentService.getPageMetadata('admin-inventory-store');
+            const meta = await contentService.getPageMetadata('admin-inventory');
             if (meta) {
                 setPageHeader(meta.titleMain || 'Inventory', meta.description || 'Stock Control');
             } else {
@@ -245,37 +245,43 @@ export const useAdminInventory = () => {
     };
 
     return {
-        loading,
-        isSaving,
-        products,
-        categories,
-        selectedCategoryId,
-        setSelectedCategoryId,
-        searchTerm,
-        setSearchTerm,
-        viewMode,
-        setViewMode,
-        isInspectorOpen,
-        setIsInspectorOpen,
-        isExportOpen,
-        setIsExportOpen,
-        selectedIds,
-        editingProduct,
-        setEditingProduct,
-        isNew,
-        isEditing,
-        setIsEditing,
-        fetchData,
-        handleProductSelect,
-        handleCreateNew,
-        handleSave,
-        handleDelete,
-        toggleSelectAll,
-        toggleSelectRow,
-        exportToCSV,
-        exportToJSON,
-        copyToClipboard,
-        filteredProducts,
-        closeInspector: handleReset
+        data: {
+            products,
+            filteredProducts,
+            categories,
+            loading,
+            fetchData,
+        },
+        ui: {
+            selectedCategoryId,
+            setSelectedCategoryId,
+            searchTerm,
+            setSearchTerm,
+            viewMode,
+            setViewMode,
+            isExportOpen,
+            setIsExportOpen,
+            selectedIds,
+            toggleSelectAll,
+            toggleSelectRow,
+            exportToCSV,
+            exportToJSON,
+            copyToClipboard,
+        },
+        inspector: {
+            isInspectorOpen,
+            setIsInspectorOpen,
+            editingProduct,
+            setEditingProduct,
+            isSaving,
+            isNew,
+            isEditing,
+            setIsEditing,
+            handleProductSelect,
+            handleCreateNew,
+            handleSave,
+            handleDelete,
+            closeInspector: handleReset
+        }
     };
 };

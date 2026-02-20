@@ -36,46 +36,23 @@ const Button: React.FC<ButtonProps> = ({
   // Variant Classes
   const variantClasses = {
     primary:
-      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300",
+      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 cherry-shadow-brand",
     outline:
       "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
     olive:
-      "text-white shadow-theme-xs disabled:opacity-50",
+      "bg-[var(--color-button-primary)] hover:bg-[var(--color-button-primary-hover)] active:bg-[var(--color-button-primary-active)] text-white shadow-theme-xs disabled:opacity-50",
   };
 
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg transition font-medium",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium",
+        "cherry-btn-animation", // Standardized micro-animations
         sizeClasses[size],
         variantClasses[variant],
-        (disabled || isLoading) && "cursor-not-allowed opacity-50",
+        (disabled || isLoading) && "cursor-not-allowed opacity-50 !scale-100 !translate-y-0",
         className
       )}
-      style={
-        variant === "olive"
-          ? {
-            backgroundColor: "var(--color-button-primary)",
-            ...(disabled || isLoading
-              ? {}
-              : {
-                transition: "background-color 0.2s",
-              }),
-          }
-          : undefined
-      }
-      onMouseEnter={(e) => {
-        if (variant === "olive" && !disabled && !isLoading) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            "var(--color-button-primary-hover)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (variant === "olive" && !disabled && !isLoading) {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            "var(--color-button-primary)";
-        }
-      }}
       onClick={isLoading ? undefined : onClick}
       disabled={disabled || isLoading}
       type={type}

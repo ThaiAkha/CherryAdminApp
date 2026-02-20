@@ -112,7 +112,7 @@ const HotelsContent: React.FC<HotelsContentProps> = ({
                 </div>
             ) : (
                 activeTab === 'meeting_points' ? (
-                    <Table className="text-xs whitespace-nowrap">
+                    <Table className="text-xs">
                         <TableHeader className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
                             <TableRow>
                                 <TableCell isHeader className="px-4 py-3 text-left font-black uppercase tracking-widest text-gray-500 text-[10px]">Meeting Point</TableCell>
@@ -185,7 +185,7 @@ const HotelsContent: React.FC<HotelsContentProps> = ({
                     </Table>
                 ) : (
                     filteredHotels.length > 0 && (
-                        <Table className="text-xs whitespace-nowrap">
+                        <Table className="text-xs">
                             <TableHeader className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
                                 <TableRow>
                                     <TableCell isHeader className="px-4 py-3 text-left font-black uppercase tracking-widest text-gray-500 text-[10px]">Name</TableCell>

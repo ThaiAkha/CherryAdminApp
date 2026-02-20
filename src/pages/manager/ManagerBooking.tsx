@@ -14,19 +14,24 @@ const ManagerBooking: React.FC = () => {
         session, setSession,
         userMode, setUserMode,
         pax, setPax,
+        maxPax,
+        pricePerHead,
         loading,
         newUser, setNewUser,
         selectedUser, setSelectedUser,
         searchTerm, setSearchTerm,
         searchResults,
-        hotel, setHotel,
-        pickupTime, setPickupTime,
+        hotelSearchQuery, setHotelSearchQuery,
+        hotelSearchResults,
+        handleHotelSelect,
+        pickupZone,
+        hasLuggage, setHasLuggage,
         notes, setNotes,
         amount,
-        status, setStatus,
         paymentStatus, setPaymentStatus,
         handleCreate,
-        currentSessionData
+        currentSessionData,
+        authUser
     } = useAdminBooking();
 
     return (
@@ -43,6 +48,7 @@ const ManagerBooking: React.FC = () => {
                     onSessionChange={setSession}
                     pax={pax}
                     onPaxChange={setPax}
+                    maxPax={maxPax}
                     currentSessionData={currentSessionData}
                 />
 
@@ -57,22 +63,25 @@ const ManagerBooking: React.FC = () => {
                     searchResults={searchResults}
                     selectedUser={selectedUser}
                     onSelectedUserChange={setSelectedUser}
-                    hotel={hotel}
-                    onHotelChange={setHotel}
-                    pickupTime={pickupTime}
-                    onPickupTimeChange={setPickupTime}
+                    hotelSearchQuery={hotelSearchQuery}
+                    onHotelSearchQueryChange={setHotelSearchQuery}
+                    hotelSearchResults={hotelSearchResults}
+                    onHotelSelect={handleHotelSelect}
+                    pickupZone={pickupZone}
                     notes={notes}
                     onNotesChange={setNotes}
+                    hasLuggage={hasLuggage}
+                    onHasLuggageChange={setHasLuggage}
+                    authUser={authUser}
                 />
 
                 {/* --- RIGHT COLUMN: SUMMARY (3/12) --- */}
                 <BookingInspector
                     pax={pax}
                     amount={amount}
+                    pricePerHead={pricePerHead}
                     paymentStatus={paymentStatus}
                     onPaymentStatusChange={setPaymentStatus}
-                    status={status}
-                    onStatusChange={setStatus}
                     onConfirm={handleCreate}
                     loading={loading}
                 />

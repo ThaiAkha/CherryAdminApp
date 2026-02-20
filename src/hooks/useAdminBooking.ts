@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export type UserMode = 'new' | 'existing' | 'agency' | 'internal';
 export type PaymentStatus = 'paid' | 'unpaid';
@@ -8,43 +9,69 @@ export interface NewUser {
     fullName: string;
     email: string;
     phone: string;
-    diet: string;
+    password: string;
+    isWhatsapp: boolean;
+    gender: 'male' | 'female' | 'other' | '';
+    age: number | '';
+    nationality: string;
 }
 
 export const useAdminBooking = () => {
+    const { user: authUser } = useAuth();
     // --- STATE ---
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [session, setSession] = useState<'morning_class' | 'evening_class'>('morning_class');
     const [userMode, setUserMode] = useState<UserMode>('new');
     const [pax, setPax] = useState<number>(1);
     const [loading, setLoading] = useState(false);
+    const [sessionPrices, setSessionPrices] = useState<Record<string, number>>({ morning_class: 1400, evening_class: 1300 });
     const [availability, setAvailability] = useState<{
         morning: { status: string; booked: number; total: number; bookings: any[] };
         evening: { status: string; booked: number; total: number; bookings: any[] };
     }>({
-        morning: { status: 'OPEN', booked: 0, total: 16, bookings: [] },
-        evening: { status: 'OPEN', booked: 0, total: 16, bookings: [] }
+        morning: { status: 'OPEN', booked: 0, total: 14, bookings: [] },
+        evening: { status: 'OPEN', booked: 0, total: 14, bookings: [] }
     });
 
-    const [newUser, setNewUser] = useState<NewUser>({ fullName: '', email: '', phone: '', diet: 'diet_regular' });
+    const [newUser, setNewUser] = useState<NewUser>({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        isWhatsapp: true,
+        gender: '',
+        age: '',
+        nationality: ''
+    });
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
-    const [hotel, setHotel] = useState('');
+
+    // Hotel Logistics
+    const [hotelSearchQuery, setHotelSearchQuery] = useState('');
+    const [hotelSearchResults, setHotelSearchResults] = useState<any[]>([]);
+    const [hotel, setHotel] = useState<any | null>(null);
+    const [isSelectingHotel, setIsSelectingHotel] = useState(false);
+    const [pickupZone, setPickupZone] = useState<any | null>(null);
     const [pickupTime, setPickupTime] = useState('');
     const [notes, setNotes] = useState('');
     const [amount, setAmount] = useState<number>(1200);
-    const [status, setStatus] = useState<'confirmed' | 'pending'>('confirmed');
     const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('unpaid');
+    const [hasLuggage, setHasLuggage] = useState(false);
 
     // --- LOGIC ---
 
     // Fetch Availability
     const fetchAvailability = useCallback(async () => {
         try {
-            const { data: sData } = await supabase.from('class_sessions').select('id, max_capacity');
+            const { data: sData } = await supabase.from('class_sessions').select('id, max_capacity, price_thb');
             const caps: any = {};
-            sData?.forEach((s: any) => caps[s.id] = s.max_capacity || 16);
+            const prices: Record<string, number> = {};
+            sData?.forEach((s: any) => {
+                caps[s.id] = s.max_capacity || 14;
+                prices[s.id] = s.price_thb || 1200;
+            });
+            setSessionPrices(prev => ({ ...prev, ...prices }));
 
             const { data: bData } = await supabase
                 .from('bookings')
@@ -87,70 +114,152 @@ export const useAdminBooking = () => {
     // Search Users
     useEffect(() => {
         const timer = setTimeout(async () => {
-            if (searchTerm.length > 2 && userMode === 'existing') {
-                const { data } = await supabase.from('profiles')
-                    .select('id, full_name, email')
-                    .ilike('full_name', `%${searchTerm}%`)
-                    .limit(5);
+            if (searchTerm.length > 2 && (userMode === 'existing' || userMode === 'agency')) {
+                let query = supabase.from('profiles')
+                    .select('id, full_name, email, role, agency_company_name, agency_phone, phone_number');
+
+                if (userMode === 'existing') {
+                    query = query.eq('role', 'guest')
+                        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`);
+                } else if (userMode === 'agency') {
+                    query = query.eq('role', 'agency')
+                        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,agency_company_name.ilike.%${searchTerm}%`);
+                }
+
+                const { data } = await query.limit(10);
                 setSearchResults(data || []);
             }
         }, 300);
         return () => clearTimeout(timer);
     }, [searchTerm, userMode]);
 
-    // Auto-calc amount
+    // Search Hotels
     useEffect(() => {
-        setAmount(pax * 1200);
-    }, [pax]);
+        const timer = setTimeout(async () => {
+            if (hotelSearchQuery.length >= 2 && !isSelectingHotel) {
+                const { data } = await supabase.from('hotel_locations')
+                    .select('*, pickup_zones(*)')
+                    .ilike('name', `%${hotelSearchQuery}%`)
+                    .limit(4);
+                setHotelSearchResults(data || []);
+            } else {
+                setHotelSearchResults([]);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [hotelSearchQuery, isSelectingHotel]);
 
-    // Default pickup time
+    // Reset isSelectingHotel flag when query changes manually
     useEffect(() => {
-        if (!pickupTime || (pickupTime === '08:30' || pickupTime === '16:30')) {
-            setPickupTime(session === 'morning_class' ? '08:30' : '16:30');
+        if (isSelectingHotel && hotel && hotelSearchQuery !== hotel.name) {
+            setIsSelectingHotel(false);
         }
-    }, [session]);
+    }, [hotelSearchQuery]);
+
+    // Handle Hotel Selection
+    const handleHotelSelect = (h: any) => {
+        setIsSelectingHotel(true);
+        setHotel(h);
+        setHotelSearchQuery(h.name);
+        setHotelSearchResults([]);
+        if (h.pickup_zones) {
+            setPickupZone(h.pickup_zones);
+            // Auto-set time based on zone and session
+            const time = session === 'morning_class'
+                ? h.pickup_zones.morning_pickup_time
+                : h.pickup_zones.evening_pickup_time;
+            setPickupTime(time || '');
+        }
+    };
+
+    // Auto-calc amount from DB price
+    useEffect(() => {
+        setAmount(pax * (sessionPrices[session] || 1200));
+    }, [pax, session, sessionPrices]);
+
+    // Clamp pax ... (unchanged)
+    const currentSessionData = session === 'morning_class' ? availability.morning : availability.evening;
+    const maxPax = Math.max(0, currentSessionData.total - currentSessionData.booked);
+
+    useEffect(() => {
+        if (maxPax > 0 && pax > maxPax) setPax(maxPax);
+    }, [maxPax]);
 
     const handleCreate = async () => {
         if (!date || !session) return alert("Missing Date/Session");
-        if (userMode === 'new' && !newUser.fullName) return alert("Guest Name Required");
-        if (userMode === 'existing' && !selectedUser) return alert("Select a User");
+        if (userMode === 'new' && (!newUser.fullName || !newUser.password)) return alert("Full Name and Password Required");
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("[useAdminBooking] handleCreate - session:", currentSession?.user?.id || 'NO SESSION');
 
         setLoading(true);
         try {
             let userId = selectedUser?.id;
 
             if (userMode === 'new') {
-                const { data: uData, error: uError } = await supabase.functions.invoke('create-guest-user', {
-                    body: {
+                console.log("[useAdminBooking] Attempting create-guest-user call. Mode: anonymous-authenticated");
+
+                const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-guest-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({
                         email: newUser.email || `guest-${Date.now()}@temp.tak`,
                         full_name: newUser.fullName,
-                        password: `Temp${Date.now()}!`
-                    }
+                        password: newUser.password
+                    })
                 });
-                if (uError || uData?.error) throw new Error(uError?.message || uData?.error);
-                userId = uData.user.id;
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("[useAdminBooking] Edge Function Error Status:", response.status, errorText);
+                    let errorData;
+                    try { errorData = JSON.parse(errorText); } catch (e) { }
+                    throw new Error(errorData?.error || `HTTP ${response.status}: ${errorText || 'Unauthorized or Gateway Error'}`);
+                }
+
+                const uData = await response.json();
+                userId = uData.userId;
                 if (userId) {
                     await supabase.from('profiles').update({
-                        dietary_profile: newUser.diet,
-                        phone_number: newUser.phone
+                        dietary_profile: 'diet_regular',
+                        phone_number: newUser.phone,
+                        whatsapp: newUser.isWhatsapp,
+                        gender: newUser.gender || null,
+                        age: newUser.age ? Number(newUser.age) : null,
+                        nationality: newUser.nationality || null
                     }).eq('id', userId);
                 }
             }
 
+            // Default values for missing logistics data
+            const defaultDriverId = 'b7866c46-221d-4b16-9fd8-72722d173de5'; // Driver 01
+
             const { error: bError } = await supabase.from('bookings').insert({
-                user_id: userMode === 'internal' ? null : userId,
-                guest_name: userMode === 'new' ? newUser.fullName : (userMode === 'internal' ? 'Internal Booking' : selectedUser?.full_name),
+                user_id: userMode === 'internal' ? authUser?.id : userId,
+                guest_name: userMode === 'new' ? newUser.fullName : (userMode === 'internal' ? (authUser?.full_name || 'Staff') : selectedUser?.full_name),
+                guest_email: userMode === 'new' ? newUser.email : (userMode === 'internal' ? authUser?.email : selectedUser?.email),
+                phone_number: userMode === 'new' ? newUser.phone : (selectedUser?.agency_phone || selectedUser?.phone_number || ''),
                 booking_date: date,
                 session_id: session,
-                pax_count: pax,
                 total_price: amount,
-                status: status,
+                status: 'confirmed',
                 payment_status: paymentStatus,
                 payment_method: userMode === 'agency' ? 'agency_invoice' : (paymentStatus === 'paid' ? 'cash' : 'pay_on_arrival'),
-                hotel_name: hotel || 'Internal/Walk-in',
-                pickup_zone: '',
+                hotel_name: hotel?.name || hotelSearchQuery || 'Internal/Walk-in',
+                pickup_zone: pickupZone?.id || '',
                 pickup_time: pickupTime,
+                pickup_lat: hotel?.lat || null,
+                pickup_lng: hotel?.lng || null,
+                pickup_driver_uid: defaultDriverId,
+                dropoff_hotel: hotel?.name || hotelSearchQuery || 'Internal/Walk-in',
+                dropoff_zone: pickupZone?.id || '',
+                dropoff_lat: hotel?.lat || null,
+                dropoff_lng: hotel?.lng || null,
                 customer_note: notes,
+                has_luggage: hasLuggage,
                 booking_source: userMode === 'internal' ? 'staff_internal' : 'admin_console'
             });
 
@@ -158,9 +267,11 @@ export const useAdminBooking = () => {
 
             alert("Booking Created Successfully!");
             // Reset
-            setPax(1); setNotes(''); setHotel(''); setSelectedUser(null);
-            setNewUser({ fullName: '', email: '', phone: '', diet: 'diet_regular' });
+            setPax(1); setNotes(''); setHotel(null); setPickupZone(null); setSelectedUser(null);
+            setNewUser({ fullName: '', email: '', phone: '', password: '', isWhatsapp: true, gender: '', age: '', nationality: '' });
             setSearchTerm('');
+            setHotelSearchQuery('');
+            setHasLuggage(false);
             fetchAvailability();
         } catch (e: any) {
             alert(`Error: ${e.message}`);
@@ -174,19 +285,26 @@ export const useAdminBooking = () => {
         session, setSession,
         userMode, setUserMode,
         pax, setPax,
+        maxPax,
+        pricePerHead: sessionPrices[session] || 1200,
         loading,
         availability,
         newUser, setNewUser,
         selectedUser, setSelectedUser,
         searchTerm, setSearchTerm,
         searchResults,
-        hotel, setHotel,
+        hotelSearchQuery, setHotelSearchQuery,
+        hotelSearchResults,
+        handleHotelSelect,
+        hotel,
+        pickupZone,
         pickupTime, setPickupTime,
+        hasLuggage, setHasLuggage,
         notes, setNotes,
         amount, setAmount,
-        status, setStatus,
         paymentStatus, setPaymentStatus,
         handleCreate,
-        currentSessionData: session === 'morning_class' ? availability.morning : availability.evening
+        currentSessionData,
+        authUser
     };
 };

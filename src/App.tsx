@@ -1,96 +1,110 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/auth/SignIn";
 import SignUp from "./pages/auth/SignUp";
 import NotFound from "./pages/common/NotFound";
 import AppLayout from "./layout/AppLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import DriverRoute from "./pages/driver/DriverRoute";
+import AkhaPixelPattern from "./components/ui/AkhaPixelPattern";
 
-// Manager Pages
-import ManagerKitchen from "./pages/manager/ManagerKitchen";
-import AdminCalendar from "./pages/admin/AdminCalendar";
-import ManagerLogistic from "./pages/manager/ManagerLogistic";
-import AdminInventory from "./pages/admin/AdminInventory";
-import ManagerPos from "./pages/manager/ManagerPos";
-import ManagerHome from "./pages/manager/ManagerHome";
-import MarketShop from "./pages/market/MarketShop";
-import MarketRunner from "./pages/market/MarketRunner";
-import AgencyReservations from "./pages/agency/AgencyReservations";
-import DriverHome from "./pages/driver/DriverHome";
-import ManagerBooking from "./pages/manager/ManagerBooking";
-import AgencyBooking from "./pages/agency/AgencyBooking";
-import AgencyReports from "./pages/agency/AgencyReports";
-import AgencyNews from "./pages/agency/AgencyNews";
-import AgencyRates from "./pages/agency/AgencyRates";
-import AgencyTerms from "./pages/agency/AgencyTerms";
-import AgencyAssets from "./pages/agency/AgencyAssets";
-import AdminReport from "./pages/admin/AdminReport";
-import AdminDatabase from "./pages/admin/AdminDatabase";
-import AdminStorage from "./pages/admin/AdminStorage";
-import AdminHotels from "./pages/admin/AdminHotels";
-import AdminHome from "./pages/admin/AdminHome";
-import AgencyDashboard from "./pages/agency/AgencyDashboard";
-import AgencyPortal from "./pages/agency/AgencyPortal";
-import KitchenHome from "./pages/kitchen/KitchenHome";
-import LogisticHome from "./pages/logistics/LogisticHome";
-import Home from "./pages/common/Home";
-import ComponentShowcase from "./pages/admin/ComponentShowcase";
+// Lazy-loaded pages — loaded only when navigated to
+const DriverRoute = lazy(() => import("./pages/driver/DriverRoute"));
+const ManagerKitchen = lazy(() => import("./pages/manager/ManagerKitchen"));
+const AdminCalendar = lazy(() => import("./pages/admin/AdminCalendar"));
+const ManagerLogistic = lazy(() => import("./pages/manager/ManagerLogistic"));
+const AdminInventory = lazy(() => import("./pages/admin/AdminInventory"));
+const ManagerPos = lazy(() => import("./pages/manager/ManagerPos"));
+const ManagerHome = lazy(() => import("./pages/manager/ManagerHome"));
+const MarketShop = lazy(() => import("./pages/market/MarketShop"));
+const MarketRunner = lazy(() => import("./pages/market/MarketRunner"));
+const AgencyReservations = lazy(() => import("./pages/agency/AgencyReservations"));
+const DriverHome = lazy(() => import("./pages/driver/DriverHome"));
+const ManagerBooking = lazy(() => import("./pages/manager/ManagerBooking"));
+const AgencyBooking = lazy(() => import("./pages/agency/AgencyBooking"));
+const AgencyReports = lazy(() => import("./pages/agency/AgencyReports"));
+const AgencyNews = lazy(() => import("./pages/agency/AgencyNews"));
+const AgencyRates = lazy(() => import("./pages/agency/AgencyRates"));
+const AgencyTerms = lazy(() => import("./pages/agency/AgencyTerms"));
+const AgencyAssets = lazy(() => import("./pages/agency/AgencyAssets"));
+const AdminReport = lazy(() => import("./pages/admin/AdminReport"));
+const AdminDatabase = lazy(() => import("./pages/admin/AdminDatabase"));
+const AdminStorage = lazy(() => import("./pages/admin/AdminStorage"));
+const AdminHotels = lazy(() => import("./pages/admin/AdminHotels"));
+const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
+const AgencyDashboard = lazy(() => import("./pages/agency/AgencyDashboard"));
+const AgencyPortal = lazy(() => import("./pages/agency/AgencyPortal"));
+const KitchenHome = lazy(() => import("./pages/kitchen/KitchenHome"));
+const LogisticHome = lazy(() => import("./pages/logistics/LogisticHome"));
+const Home = lazy(() => import("./pages/common/Home"));
+const UserProfiles = lazy(() => import("./pages/common/UserProfiles"));
+const ComponentShowcase = lazy(() => import("./pages/admin/ComponentShowcase"));
+
+function PageLoader() {
+  return (
+    <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
+      <AkhaPixelPattern variant="logo" size={10} speed={30} />
+    </div>
+  );
+}
 
 function App() {
   return (
     <>
       <Router>
         <ScrollToTop />
-        <Routes>
-          <Route element={<AppLayout />}>
-            {/* Admin & Manager Pages */}
-            <Route path="/manager-kitchen" element={<ProtectedRoute allowedRoles={['manager']}><ManagerKitchen onNavigate={() => { }} /></ProtectedRoute>} />
-            <Route path="/driver-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency', 'driver']}><DriverHome /></ProtectedRoute>} />
-            <Route path="/admin-reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReport /></ProtectedRoute>} />
-            <Route path="/admin-hotels" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminHotels /></ProtectedRoute>} />
-            <Route path="/admin-database" element={<ProtectedRoute allowedRoles={['admin']}><AdminDatabase /></ProtectedRoute>} />
-            <Route path="/admin-storage" element={<ProtectedRoute allowedRoles={['admin']}><AdminStorage /></ProtectedRoute>} />
-            <Route path="/admin/showcase" element={<ProtectedRoute allowedRoles={['admin']}><ComponentShowcase /></ProtectedRoute>} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route element={<AppLayout />}>
+              {/* Admin & Manager Pages */}
+              <Route path="/manager-kitchen" element={<ProtectedRoute allowedRoles={['manager']}><ManagerKitchen onNavigate={() => { }} /></ProtectedRoute>} />
+              <Route path="/driver-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency', 'driver']}><DriverHome /></ProtectedRoute>} />
+              <Route path="/admin-reports" element={<ProtectedRoute allowedRoles={['admin']}><AdminReport /></ProtectedRoute>} />
+              <Route path="/admin-hotels" element={<ProtectedRoute allowedRoles={['admin']}><AdminHotels /></ProtectedRoute>} />
+              <Route path="/admin-database" element={<ProtectedRoute allowedRoles={['admin']}><AdminDatabase /></ProtectedRoute>} />
+              <Route path="/admin-storage" element={<ProtectedRoute allowedRoles={['admin']}><AdminStorage /></ProtectedRoute>} />
+              <Route path="/admin/showcase" element={<ProtectedRoute allowedRoles={['admin']}><ComponentShowcase /></ProtectedRoute>} />
 
-            <Route path="/agency-reservations" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyReservations /></ProtectedRoute>} />
-            <Route path="/agency-booking" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyBooking /></ProtectedRoute>} />
-            <Route path="/agency-reports" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyReports /></ProtectedRoute>} />
-            <Route path="/agency-news" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyNews /></ProtectedRoute>} />
-            <Route path="/agency-rates" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyRates /></ProtectedRoute>} />
-            <Route path="/agency-terms" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyTerms /></ProtectedRoute>} />
-            <Route path="/agency-assets" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyAssets /></ProtectedRoute>} />
-            <Route path="/agency-dashboard" element={<ProtectedRoute allowedRoles={['agency']}><AgencyDashboard /></ProtectedRoute>} />
-            <Route path="/agency-portal" element={<ProtectedRoute allowedRoles={['agency']}><AgencyPortal /></ProtectedRoute>} />
-            <Route path="/manager-booking" element={<ProtectedRoute allowedRoles={['manager']}><ManagerBooking /></ProtectedRoute>} />
-            <Route path="/manager-home" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ManagerHome /></ProtectedRoute>} />
-            <Route path="/logistics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ManagerLogistic onNavigate={() => { }} /></ProtectedRoute>} />
-            <Route path="/driver" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'driver']}><DriverRoute onNavigate={() => { }} /></ProtectedRoute>} />
-            <Route path="/market-shop" element={<ProtectedRoute allowedRoles={['manager', 'admin']}><MarketShop /></ProtectedRoute>} />
-            <Route path="/market-run" element={<ProtectedRoute allowedRoles={['manager', 'admin']}><MarketRunner /></ProtectedRoute>} />
-            <Route path="/manager-pos" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ManagerPos /></ProtectedRoute>} />
+              <Route path="/agency-reservations" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyReservations /></ProtectedRoute>} />
+              <Route path="/agency-booking" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyBooking /></ProtectedRoute>} />
+              <Route path="/agency-reports" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyReports /></ProtectedRoute>} />
+              <Route path="/agency-news" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyNews /></ProtectedRoute>} />
+              <Route path="/agency-rates" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyRates /></ProtectedRoute>} />
+              <Route path="/agency-terms" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyTerms /></ProtectedRoute>} />
+              <Route path="/agency-assets" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'agency']}><AgencyAssets /></ProtectedRoute>} />
+              <Route path="/agency-dashboard" element={<ProtectedRoute allowedRoles={['agency']}><AgencyDashboard /></ProtectedRoute>} />
+              <Route path="/agency-portal" element={<ProtectedRoute allowedRoles={['agency']}><AgencyPortal /></ProtectedRoute>} />
+              <Route path="/manager-booking" element={<ProtectedRoute allowedRoles={['manager']}><ManagerBooking /></ProtectedRoute>} />
+              <Route path="/manager-home" element={<ProtectedRoute allowedRoles={['manager']}><ManagerHome /></ProtectedRoute>} />
+              <Route path="/logistics" element={<ProtectedRoute allowedRoles={['manager', 'logistics']}><ManagerLogistic onNavigate={() => { }} /></ProtectedRoute>} />
+              <Route path="/driver" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'driver']}><DriverRoute /></ProtectedRoute>} />
+              <Route path="/market-shop" element={<ProtectedRoute allowedRoles={['manager']}><MarketShop /></ProtectedRoute>} />
+              <Route path="/market-run" element={<ProtectedRoute allowedRoles={['manager']}><MarketRunner /></ProtectedRoute>} />
+              <Route path="/manager-pos" element={<ProtectedRoute allowedRoles={['manager']}><ManagerPos /></ProtectedRoute>} />
 
-            <Route path="/admin-calendar" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminCalendar /></ProtectedRoute>} />
-            <Route path="/admin-inventory" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminInventory /></ProtectedRoute>} />
-            <Route path="/admin-home" element={<ProtectedRoute allowedRoles={['admin']}><AdminHome /></ProtectedRoute>} />
+              <Route path="/admin-calendar" element={<ProtectedRoute allowedRoles={['admin']}><AdminCalendar /></ProtectedRoute>} />
+              <Route path="/admin-inventory" element={<ProtectedRoute allowedRoles={['admin']}><AdminInventory /></ProtectedRoute>} />
+              <Route path="/admin-home" element={<ProtectedRoute allowedRoles={['admin']}><AdminHome /></ProtectedRoute>} />
 
-            {/* Kitchen & Logistics Home */}
-            <Route path="/kitchen-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen']}><KitchenHome /></ProtectedRoute>} />
-            <Route path="/logistic-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'logistics']}><LogisticHome /></ProtectedRoute>} />
+              {/* Kitchen & Logistics Home */}
+              <Route path="/kitchen-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen']}><KitchenHome /></ProtectedRoute>} />
+              <Route path="/logistic-home" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'logistics']}><LogisticHome /></ProtectedRoute>} />
 
-            {/* Home Route — redirects each role to their own home */}
-            <Route path="/" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen', 'agency', 'driver', 'logistics']}><Home /></ProtectedRoute>} />
-          </Route >
+              {/* User Profile — shared across all roles */}
+              <Route path="/profile" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen', 'agency', 'driver', 'logistics']}><UserProfiles /></ProtectedRoute>} />
 
+              {/* Home Route — redirects each role to their own home */}
+              <Route path="/" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'kitchen', 'agency', 'driver', 'logistics']}><Home /></ProtectedRoute>} />
+            </Route >
 
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+            {/* Auth Layout */}
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes >
+            {/* Fallback Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes >
+        </Suspense>
       </Router >
     </>
   );

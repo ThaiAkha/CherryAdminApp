@@ -229,21 +229,20 @@ export const useAdminDatabase = () => {
         );
     }, [data, searchTerm]);
 
+    const getRowId = (r: any) => String(r.id ?? r.internal_id ?? JSON.stringify(r));
+
     const toggleSelectAll = () => {
         if (selectedIds.size === filteredData.length && filteredData.length > 0) {
             setSelectedIds(new Set());
         } else {
             const newSet = new Set<string>();
-            filteredData.forEach(row => {
-                const id = row.id || row.internal_id || JSON.stringify(row);
-                newSet.add(String(id));
-            });
+            filteredData.forEach(row => newSet.add(getRowId(row)));
             setSelectedIds(newSet);
         }
     };
 
     const toggleSelectRow = (row: any) => {
-        const id = String(row.id || row.internal_id || JSON.stringify(row));
+        const id = getRowId(row);
         const newSet = new Set(selectedIds);
         if (newSet.has(id)) {
             newSet.delete(id);
@@ -255,10 +254,7 @@ export const useAdminDatabase = () => {
 
     const getExportData = () => {
         if (selectedIds.size === 0) return filteredData;
-        return data.filter(row => {
-            const id = row.id || row.internal_id || JSON.stringify(row);
-            return selectedIds.has(String(id));
-        });
+        return data.filter(row => selectedIds.has(getRowId(row)));
     };
 
     const exportToJSON = () => {
@@ -306,34 +302,40 @@ export const useAdminDatabase = () => {
     };
 
     return {
-        selectedTable,
-        setSelectedTable,
-        data,
-        loading,
-        selectedRow,
-        setSelectedRow,
-        isSaving,
-        isEditing,
-        setIsEditing,
-        searchTerm,
-        setSearchTerm,
-        showDeleteConfirm,
-        setShowDeleteConfirm,
-        isExportOpen,
-        setIsExportOpen,
-        selectedIds,
-        viewMode,
-        setViewMode,
-        columns,
-        allColumns,
-        filteredData,
-        fetchTableData,
-        handleSave,
-        toggleSelectAll,
-        toggleSelectRow,
-        exportToJSON,
-        exportToCSV,
-        copyToClipboard,
-        closeInspector: () => setSelectedRow(null)
+        data: {
+            data,
+            loading,
+            selectedTable,
+            fetchTableData,
+            filteredData,
+            columns,
+            allColumns,
+        },
+        ui: {
+            setSelectedTable,
+            searchTerm,
+            setSearchTerm,
+            isExportOpen,
+            setIsExportOpen,
+            selectedIds,
+            viewMode,
+            setViewMode,
+            toggleSelectAll,
+            toggleSelectRow,
+            exportToJSON,
+            exportToCSV,
+            copyToClipboard,
+        },
+        inspector: {
+            selectedRow,
+            setSelectedRow,
+            isSaving,
+            isEditing,
+            setIsEditing,
+            showDeleteConfirm,
+            setShowDeleteConfirm,
+            handleSave,
+            closeInspector: () => setSelectedRow(null)
+        }
     };
 };

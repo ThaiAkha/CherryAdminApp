@@ -38,18 +38,18 @@ type NavItem = {
 
 const coreNavItems: NavItem[] = [
   { icon: Home, name: "Home", path: "/", allowedRoles: ["admin", "manager", "kitchen", "agency", "driver", "logistics"] },
-  { icon: CalendarPlus, name: "Manager Booking", path: "/manager-booking", allowedRoles: ["manager"] },
   { icon: Hotel, name: "Admin Hotels", path: "/admin-hotels", allowedRoles: ["admin"] },
+  { icon: CalendarDays, name: "Admin Calendar", path: "/admin-calendar", allowedRoles: ["admin"] },
+  { icon: Package, name: "Admin Inventory", path: "/admin-inventory", allowedRoles: ["admin"] },
+  { icon: Database, name: "Admin Database", path: "/admin-database", allowedRoles: ["admin"] },
+  { icon: FolderOpen, name: "Admin Storage", path: "/admin-storage", allowedRoles: ["admin"] },
+  { icon: BarChart3, name: "Admin Reports", path: "/admin-reports", allowedRoles: ["admin"] },
+  { icon: CalendarPlus, name: "Manager Booking", path: "/manager-booking", allowedRoles: ["manager"] },
   { icon: Truck, name: "Manager Logistic", path: "/logistics", allowedRoles: ["manager", "logistics"] },
   { icon: ShoppingCart, name: "Manager POS", path: "/manager-pos", allowedRoles: ["manager"] },
   { icon: ShoppingBag, name: "Market Planner", path: "/market-shop", allowedRoles: ["manager"] },
   { icon: ClipboardList, name: "Market Shopping", path: "/market-run", allowedRoles: ["manager"] },
-  { icon: CalendarDays, name: "Admin Calendar", path: "/admin-calendar", allowedRoles: ["admin"] },
-  { icon: Package, name: "Admin Inventory", path: "/admin-inventory", allowedRoles: ["admin"] },
-  { icon: BarChart3, name: "Admin Reports", path: "/admin-reports", allowedRoles: ["admin"] },
   { icon: Eye, name: "Manager Kitchen", path: "/manager-kitchen", allowedRoles: ["manager"] },
-  { icon: Database, name: "Admin Database", path: "/admin-database", allowedRoles: ["admin"] },
-  { icon: FolderOpen, name: "Admin Storage", path: "/admin-storage", allowedRoles: ["admin"] },
 ];
 
 const agencyNavItems: NavItem[] = [

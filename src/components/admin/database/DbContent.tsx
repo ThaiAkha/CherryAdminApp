@@ -57,6 +57,9 @@ const DbContent: React.FC<DbContentProps> = ({
         );
     };
 
+    const getRowId = (r: any) => String(r.id ?? r.internal_id ?? JSON.stringify(r));
+    const selectedRowId = selectedRow ? getRowId(selectedRow) : null;
+
     return (
         <DataExplorerContent
             loading={loading}
@@ -82,8 +85,8 @@ const DbContent: React.FC<DbContentProps> = ({
                     </TableHeader>
                     <TableBody>
                         {filteredData.map((row, idx) => {
-                            const rowId = String(row.id || row.internal_id || JSON.stringify(row));
-                            const isRowSelected = selectedRow?.id === row.id || (row.internal_id && selectedRow?.internal_id === row.internal_id);
+                            const currentRowId = getRowId(row);
+                            const isRowSelected = currentRowId === selectedRowId;
 
                             return (
                                 <DataExplorerRow
@@ -91,11 +94,11 @@ const DbContent: React.FC<DbContentProps> = ({
                                     idx={idx}
                                     selected={isRowSelected}
                                     onClick={() => onRowSelect(row)}
-                                    className={cn(selectedIds.has(rowId) && "!bg-brand-500/5")}
+                                    className={cn(selectedIds.has(currentRowId) && "!bg-brand-500/5")}
                                 >
                                     <TableCell className="px-4 w-10" onClick={(e) => e.stopPropagation()}>
                                         <Checkbox
-                                            checked={selectedIds.has(rowId)}
+                                            checked={selectedIds.has(currentRowId)}
                                             onChange={() => onToggleSelectRow(row)}
                                         />
                                     </TableCell>
@@ -127,16 +130,19 @@ const DbContent: React.FC<DbContentProps> = ({
             {filteredData.length > 0 && viewMode === 'grid' && (
                 <div className="p-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                        {filteredData.map((row, idx) => (
-                            <GridCard
-                                key={idx}
-                                item={row}
-                                selected={selectedRow?.id === row.id || (row.internal_id && selectedRow?.internal_id === row.internal_id)}
-                                onClick={() => onRowSelect(row)}
-                                imageIcon={<TableIcon className="w-8 h-8" />}
-                                renderFields={renderGridCardFields}
-                            />
-                        ))}
+                        {filteredData.map((row, idx) => {
+                            const currentRowId = getRowId(row);
+                            return (
+                                <GridCard
+                                    key={idx}
+                                    item={row}
+                                    selected={currentRowId === selectedRowId}
+                                    onClick={() => onRowSelect(row)}
+                                    imageIcon={<TableIcon className="w-8 h-8" />}
+                                    renderFields={renderGridCardFields}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             )}

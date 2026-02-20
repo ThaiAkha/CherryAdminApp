@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { supabase } from '../../lib/supabase';
 import Button from '../../components/ui/button/Button';
 import Badge from '../../components/ui/badge/Badge';
 import Avatar from '../../components/ui/avatar/Avatar';
 import { cn } from '../../lib/utils';
-import { authService } from '../../services/auth.service';
+import { authService, UserProfile } from '../../services/auth.service';
 import {
     Map, MessageSquare, CheckCircle2, ArrowRight,
     Sun, Moon, Bus, TruckIcon, HomeIcon
@@ -14,9 +15,31 @@ import { usePageHeader } from '../../context/PageHeaderContext';
 import { contentService } from '../../services/content.service';
 import PageMeta from '../../components/common/PageMeta';
 
-// --- CONFIGURAZIONE STATI ---
+// --- TYPES ---
 type TransportStatus = 'waiting' | 'driver_en_route' | 'driver_arrived' | 'on_board' | 'dropped_off';
+type Phase = 'PICKUP' | 'DROPOFF';
+type SessionFilter = 'morning_class' | 'evening_class';
 
+interface Stop {
+    internal_id: string;
+    status: string;
+    pax_count: number;
+    hotel_name: string;
+    pickup_zone: string;
+    pickup_time: string;
+    phone_number: string;
+    customer_note?: string;
+    session_id: string;
+    route_order: number;
+    pickup_driver_uid: string | null;
+    transport_status: TransportStatus;
+    dropoff_hotel?: string;
+    requires_dropoff?: boolean;
+    guest_name: string;
+    avatar_url?: string;
+}
+
+// --- CONFIGURAZIONE STATI ---
 const STATUS_CONFIG: Record<TransportStatus, { label: string; actionLabel: string; color: string; next: TransportStatus | null }> = {
     waiting: {
         label: 'WAITING',
@@ -50,11 +73,10 @@ const STATUS_CONFIG: Record<TransportStatus, { label: string; actionLabel: strin
     }
 };
 
-type Phase = 'PICKUP' | 'DROPOFF';
-
-const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate: _onNavigate }) => {
-    const [userProfile, setUserProfile] = useState<any>(null);
-    const [stops, setStops] = useState<any[]>([]);
+const DriverRoute: React.FC = () => {
+    const navigate = useNavigate();
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+    const [stops, setStops] = useState<Stop[]>([]);
     const [confirmId, setConfirmId] = useState<string | null>(null);
     const [phase, setPhase] = useState<Phase>('PICKUP');
     const [showPayoutModal, setShowPayoutModal] = useState(false);
@@ -62,41 +84,34 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     const [startRouteClicks, setStartRouteClicks] = useState(0);
     const [dropoffStartedManual, setDropoffStartedManual] = useState(false);
 
-    // Dynamic date for current operations
-    const [activeDate] = useState(new Date().toISOString().split('T')[0]);
-    const [sessionFilter, setSessionFilter] = useState<'morning_class' | 'evening_class'>('morning_class');
+    const activeDate = new Date().toISOString().split('T')[0];
+    const [sessionFilter, setSessionFilter] = useState<SessionFilter>('morning_class');
 
     const { setPageHeader } = usePageHeader();
 
     // 1. HEADER & METADATA
     useEffect(() => {
-        const loadMetadata = async () => {
-            const subtitle = `Operational Route for ${activeDate}`;
-            const meta = await contentService.getPageMetadata('driver-route');
+        const subtitle = `Operational Route for ${activeDate}`;
+        contentService.getPageMetadata('driver-route').then(meta => {
             if (meta) {
                 setPageHeader(meta.titleMain || 'Driver Route', meta.description || subtitle);
             } else {
                 setPageHeader('Driver Route', subtitle);
             }
-        };
-        loadMetadata();
+        });
     }, [activeDate, setPageHeader]);
 
     // 2. AUTH INITIALIZATION
     useEffect(() => {
-        const initAuth = async () => {
-            const profile = await authService.getCurrentUserProfile();
-            setUserProfile(profile);
-        };
-        initAuth();
+        authService.getCurrentUserProfile().then(profile => {
+            if (profile) setUserProfile(profile);
+        });
     }, []);
 
-    // 3. FETCH DATA (Simplified Logic)
-    const fetchRoute = async () => {
+    // 3. FETCH ROUTE DATA — wrapped in useCallback to satisfy effect deps
+    const fetchRoute = useCallback(async () => {
         if (!userProfile) return;
         try {
-            // Fetch ALL bookings for the date that are not cancelled
-            // No driver filters to avoid sync issues when claiming
             const { data, error } = await supabase
                 .from('bookings')
                 .select(`
@@ -112,43 +127,42 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             if (error) throw error;
 
             if (data) {
-                setStops(data.map((b: any) => ({
-                    ...b,
-                    guest_name: b.profiles?.full_name || 'Guest',
-                    avatar_url: b.profiles?.avatar_url
-                })));
+                setStops(data.map((b: Record<string, unknown>) => {
+                    const profile = b.profiles as { full_name?: string; avatar_url?: string } | null;
+                    return {
+                        ...b,
+                        guest_name: profile?.full_name || 'Guest',
+                        avatar_url: profile?.avatar_url,
+                    } as Stop;
+                }));
             }
         } catch (error) {
             console.error("Supabase Fetch Error:", error);
         }
-    };
+    }, [userProfile, activeDate]);
 
-    // Auto-refresh logic
+    // Auto-refresh: 30s interval — special requirement for driver operational view
     useEffect(() => {
-        if (userProfile) {
-            fetchRoute();
-            const interval = setInterval(fetchRoute, 30000);
-            return () => clearInterval(interval);
-        }
-    }, [activeDate, userProfile]);
+        if (!userProfile) return;
+        fetchRoute();
+        const interval = setInterval(fetchRoute, 30000);
+        return () => clearInterval(interval);
+    }, [userProfile, fetchRoute]);
 
-    // Auto-detect phase based on bookings status
+    // Auto-detect phase based on booking statuses
     useEffect(() => {
-        const hasPickupPhaseBookings = stops.some(s =>
-            ['waiting', 'driver_en_route', 'driver_arrived'].includes(s.transport_status) &&
-            s.session_id === sessionFilter
+        const sessionStops = stops.filter(s => s.session_id === sessionFilter);
+        const hasPickupPhase = sessionStops.some(s =>
+            ['waiting', 'driver_en_route', 'driver_arrived'].includes(s.transport_status)
         );
 
-        if (hasPickupPhaseBookings) {
+        if (hasPickupPhase) {
             setPhase('PICKUP');
         } else {
-            const hasDropoffPhaseBookings = stops.some(s =>
-                s.transport_status === 'on_board' &&
-                s.session_id === sessionFilter &&
-                s.requires_dropoff !== false
+            const hasDropoffPhase = sessionStops.some(s =>
+                s.transport_status === 'on_board' && s.requires_dropoff !== false
             );
-            if (hasDropoffPhaseBookings && phase === 'PICKUP') {
-                // Auto-switch to drop-off when all pickups complete
+            if (hasDropoffPhase && phase === 'PICKUP') {
                 setPhase('DROPOFF');
             }
         }
@@ -158,47 +172,63 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         setDropoffStartedManual(false);
     }, [phase, sessionFilter]);
 
-    // 4. MEMOIZED FILTERING (Client-side) - Role-based & Phase-based
+    // 4. MEMOIZED FILTERING — role-based & phase-based
     const visibleStops = useMemo(() => {
         let filtered = stops;
 
-        // --- ROLE-BASED FILTERING ---
-        // If user is a driver, only show their assigned bookings or unassigned ones (optional)
-        // Usually, we only show their assigned route to keep it clean.
         if (userProfile?.role === 'driver') {
             filtered = stops.filter(s => s.pickup_driver_uid === userProfile.id);
         }
-        // Admin and Manager see everything (as fetched)
 
         const sessionStops = filtered.filter(s => s.session_id === sessionFilter);
 
         if (phase === 'PICKUP') {
-            // Pickup phase: show waiting, en-route, arrived
-            return sessionStops.filter(s =>
-                ['waiting', 'driver_en_route', 'driver_arrived'].includes(s.transport_status)
-            ).sort((a, b) => {
-                // Sort by pickup_time
-                if (!a.pickup_time || !b.pickup_time) return 0;
-                return a.pickup_time.localeCompare(b.pickup_time);
-            });
-        } else {
-            // Drop-off phase: show on_board with requires_dropoff = true
-            return sessionStops.filter(s =>
-                s.transport_status === 'on_board' &&
-                s.requires_dropoff !== false
-            ).sort((a, b) => {
-                // Sort by dropoff_hotel (group by destination)
+            return sessionStops
+                .filter(s => ['waiting', 'driver_en_route', 'driver_arrived'].includes(s.transport_status))
+                .sort((a, b) => {
+                    if (!a.pickup_time || !b.pickup_time) return 0;
+                    return a.pickup_time.localeCompare(b.pickup_time);
+                });
+        }
+
+        return sessionStops
+            .filter(s => s.transport_status === 'on_board' && s.requires_dropoff !== false)
+            .sort((a, b) => {
                 const hotelA = a.dropoff_hotel || a.hotel_name || '';
                 const hotelB = b.dropoff_hotel || b.hotel_name || '';
                 return hotelA.localeCompare(hotelB);
             });
-        }
     }, [stops, sessionFilter, phase, userProfile]);
 
-    // PAYOUT CALCULATION FUNCTION
-    const calculatePayout = async () => {
-        if (!userProfile) return;
+    // 5. COMPUTED VALUES
+    const completedPax = useMemo(() =>
+        visibleStops
+            .filter(s => s.transport_status === 'on_board' || s.transport_status === 'dropped_off')
+            .reduce((sum, s) => sum + (s.pax_count || 0), 0),
+    [visibleStops]);
 
+    const totalPax = useMemo(() =>
+        visibleStops.reduce((sum, s) => sum + (s.pax_count || 0), 0),
+    [visibleStops]);
+
+    const isRouteStarted = useMemo(() => {
+        if (visibleStops.length === 0) return false;
+        if (phase === 'PICKUP') {
+            return visibleStops.some(s => s.transport_status !== 'waiting');
+        }
+        return dropoffStartedManual || visibleStops.some(s => s.transport_status === 'dropped_off');
+    }, [visibleStops, phase, dropoffStartedManual]);
+
+    // Computed once per render, not inside map loop (was O(n²))
+    const firstIncompleteIndex = useMemo(() =>
+        visibleStops.findIndex(s =>
+            phase === 'PICKUP' ? s.transport_status !== 'on_board' : s.transport_status !== 'dropped_off'
+        ),
+    [visibleStops, phase]);
+
+    // 6. PAYOUT CALCULATION
+    const calculatePayout = useCallback(async () => {
+        if (!userProfile) return;
         try {
             const { data, error } = await supabase.rpc('calculate_driver_payout', {
                 p_driver_id: userProfile.id,
@@ -208,31 +238,26 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
             if (error) {
                 console.error('Payout calculation error:', error);
-                alert('Failed to calculate payout: ' + error.message);
                 return;
             }
 
-            // data should be an array with one row containing payout_amount
             const amount = data && data.length > 0 ? data[0].payout_amount : 0;
             setPayoutAmount(amount);
             setShowPayoutModal(true);
-        } catch (err: any) {
+        } catch (err) {
             console.error('Payout RPC error:', err);
-            alert('Error calculating payout: ' + err.message);
         }
-    };
+    }, [userProfile, activeDate, sessionFilter]);
 
-    // 5. STATUS UPDATE WITH OPTIMISTIC UI
-    const handleStatusChange = async (stop: any, nextStatusOverride?: TransportStatus) => {
-        const currentConfig = STATUS_CONFIG[stop.transport_status as TransportStatus];
+    // 7. STATUS UPDATE WITH OPTIMISTIC UI
+    const handleStatusChange = useCallback(async (stop: Stop, nextStatusOverride?: TransportStatus) => {
+        const currentConfig = STATUS_CONFIG[stop.transport_status];
         const nextStatus = nextStatusOverride || currentConfig.next;
 
         if (!nextStatus || !userProfile) return;
 
-        // Backup for Rollback
         const previousStops = [...stops];
 
-        // OPTIMISTIC UPDATE: Update local state immediately
         setStops(current => current.map(s =>
             s.internal_id === stop.internal_id
                 ? { ...s, transport_status: nextStatus, pickup_driver_uid: userProfile.id }
@@ -240,17 +265,14 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         ));
 
         try {
-            const updatePayload: any = {
-                transport_status: nextStatus as string,
-                pickup_driver_uid: userProfile.id // Claiming the ride
+            const updatePayload: Record<string, unknown> = {
+                transport_status: nextStatus,
+                pickup_driver_uid: userProfile.id,
             };
 
-            // Capture timestamp for actual pickup
             if (nextStatus === 'on_board') {
                 updatePayload.actual_pickup_time = new Date().toISOString();
             }
-
-            // Capture timestamp for actual dropoff
             if (nextStatus === 'dropped_off') {
                 updatePayload.actual_dropoff_time = new Date().toISOString();
             }
@@ -262,29 +284,22 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
             if (error) throw error;
 
-            // Check if this was the last drop-off in DROPOFF phase
+            // All drop-offs complete → trigger payout
             if (nextStatus === 'dropped_off' && phase === 'DROPOFF') {
-                // Check if all drop-offs are complete
-                const allDropoffComplete = stops
+                const allComplete = stops
                     .filter(s => s.session_id === sessionFilter && s.requires_dropoff !== false)
-                    .every(s =>
-                        s.internal_id === stop.internal_id || s.transport_status === 'dropped_off'
-                    );
+                    .every(s => s.internal_id === stop.internal_id || s.transport_status === 'dropped_off');
 
-                if (allDropoffComplete) {
-                    // Trigger payout calculation
-                    await calculatePayout();
-                }
+                if (allComplete) await calculatePayout();
             }
 
-            // CHAIN LOGIC: If picking up, set the next "waiting" stop to "en_route"
+            // Chain: after pickup, set next waiting stop to en_route
             if (nextStatus === 'on_board') {
                 const currentOrder = stop.route_order || 0;
                 const nextStop = visibleStops.find(s =>
                     s.transport_status === 'waiting' &&
                     (s.route_order > currentOrder || !s.route_order)
                 );
-
                 if (nextStop) {
                     await supabase.from('bookings').update({
                         transport_status: 'driver_en_route',
@@ -293,24 +308,15 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 }
             }
 
-            // Optional: Silent refresh to sync with other drivers
             fetchRoute();
-
-        } catch (error: any) {
-            console.error("Critical State Error Details:", {
-                message: error.message,
-                details: error.details,
-                hint: error.hint,
-                code: error.code
-            });
-            // ROLLBACK: Revert to previous state if Supabase fails
+        } catch (error) {
+            console.error("Status update failed:", error);
             setStops(previousStops);
-            alert(`Sync Failed: ${error.message || 'Please check your connection'}`);
         }
-    };
+    }, [userProfile, stops, phase, sessionFilter, visibleStops, calculatePayout, fetchRoute]);
 
-    // 6. ACTION HANDLERS
-    const handleClickAction = (stop: any) => {
+    // 8. ACTION HANDLERS
+    const handleClickAction = useCallback((stop: Stop) => {
         if (confirmId === stop.internal_id) {
             handleStatusChange(stop);
             setConfirmId(null);
@@ -318,13 +324,12 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             setConfirmId(stop.internal_id);
             setTimeout(() => setConfirmId(null), 3000);
         }
-    };
+    }, [confirmId, handleStatusChange]);
 
-    const handleStartRoute = async () => {
-        // Double-click confirmation
+    const handleStartRoute = useCallback(async () => {
         if (startRouteClicks === 0) {
             setStartRouteClicks(1);
-            setTimeout(() => setStartRouteClicks(0), 3000); // Reset after 3 seconds
+            setTimeout(() => setStartRouteClicks(0), 3000);
             return;
         }
 
@@ -334,39 +339,18 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             const firstWaiting = visibleStops.find(s => s.transport_status === 'waiting');
             if (firstWaiting) {
                 await handleStatusChange(firstWaiting, 'driver_en_route');
-            } else {
-                alert("Nothing to start for this session.");
             }
         } else {
-            // DROPOFF Phase
             setDropoffStartedManual(true);
-            // Optionally, we could update the first stop's status if needed, 
-            // but for now local state satisfies the UI request
         }
-    };
+    }, [startRouteClicks, phase, visibleStops, handleStatusChange]);
 
-    // 7. UTILS & COMPUTED
-    const openMap = (hotel: string) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel + " Chiang Mai")}`, '_blank');
-    const handleWhatsApp = (phone: string) => window.open(`https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=Sawasdee%20kha%20Driver%20is%20at%20lobby`, '_blank');
+    // 9. UTILS
+    const openMap = (hotel: string) =>
+        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotel + " Chiang Mai")}`, '_blank');
 
-    const completedPax = useMemo(() =>
-        visibleStops.filter(s => s.transport_status === 'on_board' || s.transport_status === 'dropped_off')
-            .reduce((sum, s) => sum + (s.pax_count || 0), 0)
-        , [visibleStops]);
-
-    const totalPax = useMemo(() =>
-        visibleStops.reduce((sum, s) => sum + (s.pax_count || 0), 0)
-        , [visibleStops]);
-
-    const isRouteStarted = useMemo(() => {
-        if (visibleStops.length === 0) return false;
-        if (phase === 'PICKUP') {
-            return visibleStops.some(s => s.transport_status !== 'waiting');
-        } else {
-            // In DROPOFF, it started if manual button clicked OR someone is already dropped off
-            return dropoffStartedManual || visibleStops.some(s => s.transport_status === 'dropped_off');
-        }
-    }, [visibleStops, phase, dropoffStartedManual]);
+    const handleWhatsApp = (phone: string) =>
+        window.open(`https://wa.me/${phone?.replace(/[^0-9]/g, '')}?text=Sawasdee%20kha%20Driver%20is%20at%20lobby`, '_blank');
 
     return (
         <>
@@ -436,59 +420,39 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                     </div>
 
                     <div className="px-4 space-y-6">
-                        {!isRouteStarted && visibleStops.length > 0 && phase === 'PICKUP' && (
+                        {/* Start Route Button */}
+                        {!isRouteStarted && visibleStops.length > 0 && (
                             <Button
                                 variant="primary"
                                 size="md"
                                 onClick={handleStartRoute}
                                 className={cn(
                                     "w-full h-16 text-lg font-black transition-all",
-                                    startRouteClicks === 0
-                                        ? "shadow-[0_0_40px_rgba(227,31,51,0.4)] animate-pulse bg-brand-600 hover:bg-brand-700 text-white"
-                                        : "bg-red-500 text-white animate-pulse shadow-[0_0_60px_rgba(239,68,68,0.6)]"
+                                    phase === 'PICKUP'
+                                        ? startRouteClicks === 0
+                                            ? "shadow-[0_0_40px_rgba(227,31,51,0.4)] animate-pulse bg-brand-600 hover:bg-brand-700 text-white"
+                                            : "bg-red-500 text-white animate-pulse shadow-[0_0_60px_rgba(239,68,68,0.6)]"
+                                        : startRouteClicks === 0
+                                            ? "shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pulse bg-green-600 hover:bg-green-700 text-white"
+                                            : "bg-red-500 text-white animate-pulse shadow-[0_0_60px_rgba(239,68,68,0.6)]"
                                 )}
                             >
-                                <Bus className="w-5 h-5 mr-2" />
-                                {startRouteClicks === 0 ? 'Start Pickup Route' : 'CLICK AGAIN TO CONFIRM'}
-                            </Button>
-                        )}
-
-                        {!isRouteStarted && visibleStops.length > 0 && phase === 'DROPOFF' && (
-                            <Button
-                                variant="primary"
-                                size="md"
-                                onClick={handleStartRoute}
-                                className={cn(
-                                    "w-full h-16 text-lg font-black transition-all",
-                                    startRouteClicks === 0
-                                        ? "shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-pulse bg-green-600 hover:bg-green-700 text-white"
-                                        : "bg-red-500 text-white animate-pulse shadow-[0_0_60px_rgba(239,68,68,0.6)]"
-                                )}
-                            >
-                                <HomeIcon className="w-5 h-5 mr-2" />
-                                {startRouteClicks === 0 ? 'Start Drop-off Route' : 'CLICK AGAIN TO CONFIRM'}
+                                {phase === 'PICKUP'
+                                    ? <><Bus className="w-5 h-5 mr-2" />{startRouteClicks === 0 ? 'Start Pickup Route' : 'CLICK AGAIN TO CONFIRM'}</>
+                                    : <><HomeIcon className="w-5 h-5 mr-2" />{startRouteClicks === 0 ? 'Start Drop-off Route' : 'CLICK AGAIN TO CONFIRM'}</>
+                                }
                             </Button>
                         )}
 
                         {visibleStops.map((stop, index) => {
-                            const statusCfg = STATUS_CONFIG[stop.transport_status as TransportStatus];
+                            const statusCfg = STATUS_CONFIG[stop.transport_status];
                             const isDone = stop.transport_status === 'dropped_off';
                             const isOnBoard = stop.transport_status === 'on_board';
-
-                            // Sequential activation logic:
-                            // A card is active if it's the first one in the list that isn't 'done'
-                            // For PICKUP: first one that isn't 'on_board'
-                            // For DROPOFF: first one that isn't 'dropped_off'
-                            const firstIncompleteIndex = visibleStops.findIndex(s =>
-                                phase === 'PICKUP' ? s.transport_status !== 'on_board' : s.transport_status !== 'dropped_off'
-                            );
                             const isActiveStep = index === firstIncompleteIndex && isRouteStarted;
                             const isConfirming = confirmId === stop.internal_id;
-
-                            // For drop-off phase, show destination hotel
                             const displayHotel = phase === 'DROPOFF' ? (stop.dropoff_hotel || stop.hotel_name) : stop.hotel_name;
 
-                            // Compact completed cards
+                            // Compact card for completed stops
                             if (isDone) {
                                 return (
                                     <div key={stop.internal_id} className="flex items-center justify-between p-3 bg-white/5 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-xl opacity-60">
@@ -529,7 +493,10 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             <Avatar src={stop.avatar_url} alt={stop.guest_name} size="medium" />
                                             <div className="min-w-0">
                                                 <h5 className="truncate leading-none mb-1 text-lg font-bold text-gray-900 dark:text-white">{stop.guest_name}</h5>
-                                                {stop.customer_note ? <p className="text-[10px] text-yellow-600 dark:text-yellow-500 italic truncate font-bold">⚠️ "{stop.customer_note}"</p> : <p className="text-[10px] text-gray-400 dark:text-white/30 font-bold uppercase">No Notes</p>}
+                                                {stop.customer_note
+                                                    ? <p className="text-[10px] text-yellow-600 dark:text-yellow-500 italic truncate font-bold">⚠️ "{stop.customer_note}"</p>
+                                                    : <p className="text-[10px] text-gray-400 dark:text-white/30 font-bold uppercase">No Notes</p>
+                                                }
                                             </div>
                                         </div>
 
@@ -548,7 +515,6 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             </button>
                                         </div>
 
-                                        {/* Only show action button for currently active card */}
                                         {isActiveStep && stop.transport_status !== 'waiting' && (
                                             <button
                                                 onClick={() => handleClickAction(stop)}
@@ -559,18 +525,16 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                                         : statusCfg.color
                                                 )}
                                             >
-                                                {isConfirming ? (
-                                                    <>CONFIRM ACTION?</>
-                                                ) : (
-                                                    <>{statusCfg.actionLabel} {isOnBoard ? <CheckCircle2 className="w-5 h-5 animate-bounce" /> : <ArrowRight className="w-5 h-5 animate-bounce" />}</>
-                                                )}
+                                                {isConfirming
+                                                    ? <>CONFIRM ACTION?</>
+                                                    : <>{statusCfg.actionLabel} {isOnBoard ? <CheckCircle2 className="w-5 h-5 animate-bounce" /> : <ArrowRight className="w-5 h-5 animate-bounce" />}</>
+                                                }
                                             </button>
                                         )}
                                     </div>
                                 </div>
                             );
                         })}
-
                     </div>
                 </div>
 
@@ -595,7 +559,7 @@ const DriverRoute: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                     variant="primary"
                                     onClick={() => {
                                         setShowPayoutModal(false);
-                                        window.location.href = '/driver';
+                                        navigate('/driver');
                                     }}
                                     className="w-full h-12 text-lg font-bold"
                                 >

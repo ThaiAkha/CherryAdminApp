@@ -6,11 +6,11 @@ import { cn } from '../../lib/utils';
 
 type ViewMode = 'table' | 'grid';
 
-/** Shared style for all toolbar icon buttons - orange theme */
-const ICON_BTN = "h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:border-orange-200 dark:hover:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all active:scale-95";
+/** Shared style for all toolbar icon buttons - premium theme */
+const ICON_BTN = "h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-brand-500 hover:border-brand-200 dark:hover:border-brand-800 hover:bg-brand-50 dark:hover:bg-brand-500/10 cherry-btn-animation";
 
-/** Shared style for primary action button - orange theme */
-const PRIMARY_BTN = "h-9 px-4 inline-flex items-center gap-2 rounded-lg border border-orange-500 bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest shadow-sm hover:bg-orange-600 hover:border-orange-600 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
+/** Shared style for primary action button - premium theme */
+const PRIMARY_BTN = "h-9 px-4 inline-flex items-center gap-2 rounded-lg border border-brand-500 bg-brand-500 text-white text-[10px] font-black uppercase tracking-widest cherry-shadow-brand cherry-btn-animation disabled:opacity-50 disabled:cursor-not-allowed";
 
 interface DataExplorerToolbarProps {
     // View mode toggle

@@ -1,7 +1,5 @@
 import { supabase } from '../lib/supabase';
 
-const PROFILE_CACHE_KEY = 'akha_user_profile_cache_v1';
-
 /**
  * 👤 USER PROFILE INTERFACE
  * Include sia i dati del Turista (Guest) che quelli dell'Agenzia (B2B).
@@ -17,15 +15,21 @@ export interface UserProfile {
     allergies: string[];
     preferred_spiciness_id?: number;
     avatar_url?: string; // Per le Agenzie, questo funge da Logo Aziendale
+    whatsapp?: boolean;
+    gender?: 'male' | 'female' | 'other' | '';
+    age?: number | '';
+    nationality?: string;
 
     // 👇 DATI SPECIFICI AGENZIA (B2B)
     agency_company_name?: string;
     agency_commission_rate?: number;
     agency_tax_id?: string;
     agency_phone?: string;
-    agency_commission_config?: {
+    commission_config?: {
         mode: 'flat' | 'tiered';
-        tiers?: { min_pax: number; rate: number }[];
+        tiers?: { threshold: number; rate: number }[];
+        reset_period?: string;
+        included_statuses?: string[];
     };
 
     // 👇 INDIRIZZO & LOGISTICA AGENZIA
@@ -34,6 +38,9 @@ export interface UserProfile {
     agency_province?: string;
     agency_country?: string;
     agency_postal_code?: string;
+
+    // 👇 REFINEMENT: ACCOUNT STATUS
+    is_active?: boolean;
 }
 
 export const authService = {
@@ -41,7 +48,6 @@ export const authService = {
     /**
      * 📝 SIGN UP (STANDARD)
      * Registrazione standard — assegna ruolo 'agency' di default.
-     * Altri ruoli (admin, manager, driver, kitchen, logistics) vengono assegnati manualmente da admin.
      */
     async signUp(email: string, password: string, fullName: string) {
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -78,44 +84,40 @@ export const authService = {
     async signUpAgency(
         email: string,
         password: string,
+        contactName: string,
         companyName: string,
         taxId: string,
         phone: string
     ) {
-        // 1. Crea Auth User
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email,
             password,
             options: {
-                data: { full_name: companyName } // Usa il nome azienda come nome utente
+                data: { full_name: contactName }
             }
         });
 
         if (authError) throw authError;
 
-        // 2. Scrivi Profilo Agenzia Esteso
         if (authData.user) {
             const { error: profileError } = await supabase
                 .from('profiles')
                 .upsert({
                     id: authData.user.id,
                     email: email,
-                    full_name: companyName,     // Nome visualizzato
-                    role: 'agency',             // 👈 FORZA IL RUOLO B2B
-
-                    // Dati Specifici Agenzia
+                    full_name: contactName,
+                    role: 'agency',
                     agency_company_name: companyName,
                     agency_tax_id: taxId,
                     agency_phone: phone,
-                    agency_commission_rate: 20, // Default 20%
-                    agency_commission_config: {
+                    agency_commission_rate: 20,
+                    commission_config: {
                         mode: 'tiered',
                         tiers: [
-                            { min_pax: 1, rate: 20 },
-                            { min_pax: 10, rate: 25 }
+                            { threshold: 1, rate: 20 },
+                            { threshold: 10, rate: 25 }
                         ]
                     },
-
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'id' });
 
@@ -125,7 +127,63 @@ export const authService = {
         return authData;
     },
 
-    /** 🔑 LOGIN (Comune per tutti) */
+    /**
+     * 👤 GET CURRENT USER PROFILE
+     * Usa getSession() (localStorage, niente HTTP) per ottenere l'utente,
+     * poi fetch dal DB solo per il profilo.
+     */
+    async getCurrentUserProfile(): Promise<UserProfile | null> {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) return null;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select(`
+                    id, full_name, email, role, avatar_url, whatsapp,
+                    dietary_profile, allergies, preferred_spiciness_id,
+                    agency_company_name, agency_commission_rate,
+                    agency_tax_id, agency_phone, commission_config,
+                    agency_address, agency_city, agency_province, agency_country, agency_postal_code,
+                    gender, age, nationality, is_active
+                `)
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+            if (error || !data) return null;
+
+            return {
+                id: data.id,
+                full_name: data.full_name,
+                email: data.email,
+                role: (data.role as UserProfile['role']) || 'agency',
+                avatar_url: data.avatar_url,
+                whatsapp: data.whatsapp,
+                dietary_profile: data.dietary_profile || 'diet_regular',
+                allergies: data.allergies || [],
+                preferred_spiciness_id: data.preferred_spiciness_id || 2,
+                agency_company_name: data.agency_company_name,
+                agency_commission_rate: data.agency_commission_rate,
+                agency_tax_id: data.agency_tax_id,
+                agency_phone: data.agency_phone,
+                commission_config: data.commission_config,
+                agency_address: data.agency_address,
+                agency_city: data.agency_city,
+                agency_province: data.agency_province,
+                agency_country: data.agency_country,
+                agency_postal_code: data.agency_postal_code,
+                gender: data.gender,
+                age: data.age,
+                nationality: data.nationality,
+                is_active: data.is_active
+            };
+        } catch (err) {
+            console.error("getCurrentUserProfile error:", err);
+            return null;
+        }
+    },
+
+    /** 🔑 LOGIN */
     async signIn(email: string, password: string) {
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -136,122 +194,21 @@ export const authService = {
         return data;
     },
 
-    /** 🔄 RESET PASSWORD (Recovery Flow) */
+    /** 🔄 RESET PASSWORD */
     async resetPassword(email: string) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/auth/reset', // URL di ritorno
+            redirectTo: window.location.origin + '/auth/reset',
         });
         if (error) throw error;
     },
 
     /** 🚪 LOGOUT */
     async signOut() {
+        localStorage.removeItem('akha_user_profile_cache_v1');
         await supabase.auth.signOut();
-        localStorage.clear();
     },
 
-    /** 
-     * 👤 GET CURRENT SESSION PROFILE 
-     * Scarica tutti i dati, inclusi quelli fiscali/agenzia se presenti.
-     */
-    async getCurrentUserProfile(): Promise<UserProfile | null> {
-        try {
-            // 🚀 STALE-WHILE-REVALIDATE: Try cache first
-            const cached = localStorage.getItem(PROFILE_CACHE_KEY);
-            let cachedProfile: UserProfile | null = null;
-            if (cached) {
-                try {
-                    cachedProfile = JSON.parse(cached);
-                    console.log("[AuthService] Returning cached profile:", cachedProfile?.full_name);
-                } catch (e) {
-                    localStorage.removeItem(PROFILE_CACHE_KEY);
-                }
-            }
-
-            console.log("[AuthService] getCurrentUserProfile: Calling getUser()...");
-
-
-            // Race between getUser and timeout
-            const { data: { user } } = await Promise.race([
-                supabase.auth.getUser(),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("getUser timed out")), 10000)
-                )
-            ]) as any;
-
-            console.log("[AuthService] getCurrentUserProfile: getUser result:", user?.id);
-
-            if (!user) {
-                console.log("[AuthService] getCurrentUserProfile: No user found. Clearing cache.");
-                localStorage.removeItem(PROFILE_CACHE_KEY);
-                return null;
-            }
-
-            // Background fetch to update cache
-            const fetchAndUpdate = async () => {
-                try {
-                    console.log("[AuthService] Background fetching fresh profile...");
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select(`
-                            id, full_name, email, role, avatar_url,
-                            dietary_profile, allergies, preferred_spiciness_id,
-                            agency_company_name, agency_commission_rate,
-                            agency_tax_id, agency_phone,
-                            agency_address, agency_city, agency_province, agency_country, agency_postal_code
-                        `)
-                        .eq('id', user.id)
-                        .maybeSingle();
-
-                    if (!error && data) {
-                        const freshProfile: UserProfile = {
-                            id: data.id,
-                            full_name: data.full_name,
-                            email: data.email,
-                            role: (data.role as any) || 'agency',
-                            avatar_url: data.avatar_url,
-                            dietary_profile: data.dietary_profile || 'diet_regular',
-                            allergies: data.allergies || [],
-                            preferred_spiciness_id: data.preferred_spiciness_id || 2,
-                            agency_company_name: data.agency_company_name,
-                            agency_commission_rate: data.agency_commission_rate,
-                            agency_tax_id: data.agency_tax_id,
-                            agency_phone: data.agency_phone,
-                            agency_address: data.agency_address,
-                            agency_city: data.agency_city,
-                            agency_province: data.agency_province,
-                            agency_country: data.agency_country,
-                            agency_postal_code: data.agency_postal_code
-                        };
-                        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(freshProfile));
-                        console.log("[AuthService] Cache updated in background.");
-                        return freshProfile;
-                    }
-                } catch (e) {
-                    console.error("[AuthService] Background fetch error:", e);
-                }
-                return null;
-            };
-
-            if (cachedProfile && cachedProfile.id === user.id) {
-                fetchAndUpdate(); // Trigger update in background
-                return cachedProfile;
-            }
-
-            const freshData = await fetchAndUpdate();
-            return freshData;
-
-        } catch (err) {
-            console.error("Auth profile fetch error (CAT):", err);
-            return null;
-        }
-    },
-
-    /**
-     * 💾 UPDATE PROFILE
-     * Aggiornamento generico dei dati profilo (Avatar, Nome, ecc.)
-     * Necessario per UserSettings e Agency Dashboard.
-     */
+    /** 💾 UPDATE PROFILE */
     async updateProfile(userId: string, updates: Partial<UserProfile>) {
         const { error } = await supabase
             .from('profiles')

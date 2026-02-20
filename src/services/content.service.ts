@@ -69,10 +69,10 @@ export const contentService = {
 
     /** 🎴 MENU SIDEBAR: Dinamico con livelli di accesso */
     async getMenuItems() {
-        return fetchWithCache('sidebar_menu_v5', async () => {
+        return fetchWithCache('sidebar_menu_v6', async () => {
             const { data, error } = await supabase
                 .from('site_metadata_admin')
-                .select('page_slug, menu_label, header_icon, menu_order, access_level')
+                .select('page_slug, menu_label, header_icon, menu_order, access_level, page_description')
                 .eq('show_in_menu', true)
                 .order('menu_order', { ascending: true });
 

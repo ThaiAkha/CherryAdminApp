@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
-import Label from "../form/Label";
 import { useAuth } from "../../context/AuthContext";
 
 export default function UserAddressCard() {
   const { user, updateProfile } = useAuth();
-  const { isOpen, openModal, closeModal } = useModal();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     country: "",
     city: "",
@@ -31,7 +28,7 @@ export default function UserAddressCard() {
         commissionRate: user.agency_commission_rate?.toString() || ""
       });
     }
-  }, [user]);
+  }, [user, isEditing]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,149 +44,172 @@ export default function UserAddressCard() {
         agency_province: formData.province,
         agency_postal_code: formData.postalCode,
         agency_tax_id: formData.taxId,
-        agency_address: formData.address,
-        agency_commission_rate: formData.commissionRate ? parseFloat(formData.commissionRate) : undefined
+        agency_address: formData.address
       });
-      closeModal();
+      setIsEditing(false);
     } catch (error) {
       console.error("Failed to update address", error);
     }
   };
 
   return (
-    <>
-      <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex-1 w-full">
-            <h4 className="text-lg font-black italic uppercase tracking-tighter text-gray-900 dark:text-white mb-6">
-              Location & Identity
-            </h4>
+    <div className="p-6 lg:p-8 rounded-3xl border border-emerald-100/50 dark:border-emerald-500/10 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-500/5 dark:to-transparent backdrop-blur-xl shadow-sm h-full flex flex-col">
+      <div className="flex-1 w-full">
+        <h4 className="text-xl font-black italic uppercase tracking-tighter text-gray-900 dark:text-white border-b border-emerald-100/50 dark:border-emerald-500/10 pb-4 mb-8">
+          Location & Identity
+        </h4>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 lg:gap-x-12 xl:gap-x-24">
-              <div className="lg:col-span-2">
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  Agency Address
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {user?.agency_address || "Not set"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  Country
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {user?.agency_country || "Not set"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  City / Province
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {user?.agency_city ? `${user.agency_city}${user.agency_province ? `, ${user.agency_province}` : ""}` : "Not set"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  Postal Code
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {user?.agency_postal_code || "Not set"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  TAX ID / VAT
-                </p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white/90">
-                  {user?.agency_tax_id || "Not set"}
-                </p>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  Commission Rate
-                </p>
-                <p className="text-sm font-semibold text-brand-600 dark:text-brand-400">
-                  {user?.agency_commission_rate ? `${user.agency_commission_rate}%` : "Not set"}
-                </p>
-              </div>
-            </div>
+        <div className="flex flex-col gap-6">
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              Agency Address
+            </p>
+            {isEditing ? (
+              <Input
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_address || "Not set"}
+              </p>
+            )}
           </div>
 
-          <button
-            onClick={openModal}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-xs font-black uppercase tracking-widest text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto transition-all duration-200 active:scale-95"
-          >
-            Edit Address
-          </button>
-        </div>
-      </div>
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-black italic uppercase tracking-tighter text-gray-900 dark:text-white">
-              Location Details
-            </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Manage your physical address, tax identification, and commission settings.
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              Country
+            </p>
+            {isEditing ? (
+              <Input
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_country || "Not set"}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              City
+            </p>
+            {isEditing ? (
+              <Input
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                placeholder="City"
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_city || "Not set"}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              Province
+            </p>
+            {isEditing ? (
+              <Input
+                name="province"
+                value={formData.province}
+                onChange={handleChange}
+                placeholder="Province"
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_province || "Not set"}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              Postal Code
+            </p>
+            {isEditing ? (
+              <Input
+                name="postalCode"
+                value={formData.postalCode}
+                onChange={handleChange}
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_postal_code || "Not set"}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              TAX ID / VAT
+            </p>
+            {isEditing ? (
+              <Input
+                name="taxId"
+                value={formData.taxId}
+                onChange={handleChange}
+                className="bg-white/50 backdrop-blur-sm"
+              />
+            ) : (
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {user?.agency_tax_id || "Not set"}
+              </p>
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-emerald-100/30 dark:border-emerald-500/5">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-600/60 dark:text-emerald-400/60">
+              Commission Rate
+            </p>
+            <p className="inline-block text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+              {user?.agency_commission_rate ? `${user.agency_commission_rate}%` : "Not set"}
             </p>
           </div>
-          <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
-            <div className="custom-scrollbar h-auto max-h-[50vh] overflow-y-auto px-2 pb-3">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div className="col-span-2">
-                  <Label>Agency Address</Label>
-                  <Input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter full address" />
-                </div>
-
-                <div>
-                  <Label>Country</Label>
-                  <Input type="text" name="country" value={formData.country} onChange={handleChange} placeholder="e.g. Thailand" />
-                </div>
-
-                <div>
-                  <Label>City</Label>
-                  <Input type="text" name="city" value={formData.city} onChange={handleChange} placeholder="e.g. Chiang Mai" />
-                </div>
-
-                <div>
-                  <Label>Province / State</Label>
-                  <Input type="text" name="province" value={formData.province} onChange={handleChange} placeholder="e.g. Chiang Mai" />
-                </div>
-
-                <div>
-                  <Label>Postal Code</Label>
-                  <Input type="text" name="postalCode" value={formData.postalCode} onChange={handleChange} placeholder="50200" />
-                </div>
-
-                <div>
-                  <Label>TAX ID / VAT</Label>
-                  <Input type="text" name="taxId" value={formData.taxId} onChange={handleChange} placeholder="Enter your tax id" />
-                </div>
-
-                <div>
-                  <Label>Commission Rate (%)</Label>
-                  <Input type="number" name="commissionRate" value={formData.commissionRate} onChange={handleChange} placeholder="0" />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-2 mt-8 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal} className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                Cancel
-              </Button>
-              <Button size="sm" type="submit" className="rounded-xl font-bold uppercase tracking-widest text-[10px]">
-                Save Changes
-              </Button>
-            </div>
-          </form>
         </div>
-      </Modal>
-    </>
+      </div>
+
+      <div className="mt-8 pt-6 border-t border-emerald-100/30 dark:border-emerald-500/10">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          {isEditing ? (
+            <>
+              <Button
+                onClick={() => setIsEditing(false)}
+                variant="outline"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-xs"
+              >
+                ANNULLA
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-xs border-emerald-200 dark:border-emerald-500/20"
+              >
+                SALVA
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="outline"
+              className="w-full lg:w-auto px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-sm hover:shadow-md transition-all active:scale-95"
+            >
+              MODIFICA
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

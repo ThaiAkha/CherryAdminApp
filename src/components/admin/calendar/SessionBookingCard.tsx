@@ -30,8 +30,8 @@ const SessionBookingCard: React.FC<SessionBookingCardProps> = ({
 
     return (
         <div className={cn(
-            "rounded-2xl border bg-white dark:bg-gray-900 overflow-hidden flex flex-col transition-all min-h-[140px] flex-1",
-            isClosed ? "border-gray-200 dark:border-gray-800 opacity-80" : "border-gray-100 dark:border-white/[0.05]",
+            "rounded-xl border bg-white dark:bg-gray-800 overflow-hidden flex flex-col transition-all min-h-[140px] flex-1 shadow-sm",
+            isClosed ? "border-gray-200 dark:border-gray-800 opacity-80" : "border-gray-200 dark:border-gray-700",
             className
         )}>
             {/* Header */}
