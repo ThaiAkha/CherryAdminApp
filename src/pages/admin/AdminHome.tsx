@@ -55,74 +55,10 @@ const AdminHome: React.FC = () => {
         );
     }
 
-    // Separate cards by type OR use fallback data
+    // Separate cards by type from database
     const featureCards = homeCards.filter(card => card.card_type === 'feature');
     const navCards = homeCards.filter(card => card.card_type === 'nav');
     const ctaBanners = homeCards.filter(card => card.card_type === 'cta');
-
-    // Fallback: if no cards in database, show default cards
-    const defaultFeatureCards = [
-        {
-            id: 'inventory',
-            title: 'Inventory Store',
-            description: 'Manage product catalog, stock levels, and precise ingredient pricing.',
-            image_url: 'https://images.unsplash.com/photo-1556910101-ff37c7cb3668?w=800&auto=format&fit=crop',
-            icon: 'Package',
-            target_path: 'admin-inventory',
-            link_label: 'Go to Store'
-        },
-        {
-            id: 'hotels',
-            title: 'Hotel List',
-            description: 'Add hotels, map GPS coordinates, and assign dynamic pickup zones for classes.',
-            image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop',
-            icon: 'Hotel',
-            target_path: 'admin-hotels',
-            link_label: 'Go to Hotel List'
-        },
-        {
-            id: 'calendar',
-            title: 'Manage Calendar',
-            description: 'Coordinate class sessions, seasonal closures, and guide availability in real-time.',
-            image_url: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop',
-            icon: 'CalendarDays',
-            target_path: 'admin-calendar',
-            link_label: 'Go to Calendar'
-        }
-    ];
-
-    const defaultNavCards = [
-        {
-            id: 'database',
-            title: 'System Database',
-            description: 'Core logs, system health, and raw data viewer.',
-            icon: 'Database',
-            target_path: 'admin-database'
-        },
-        {
-            id: 'storage',
-            title: 'Media Storage',
-            description: 'Manage high-res uploads and brand assets.',
-            icon: 'FolderOpen',
-            target_path: 'admin-storage'
-        }
-    ];
-
-    const defaultCtaBanners = [
-        {
-            id: 'reports',
-            title: 'Executive Reports & Intelligence',
-            description: 'Track revenue stats, driver payroll efficiency, and operational KPIs for the current quarter.',
-            cta_label: 'View Reports',
-            target_path: 'admin-reports',
-            icon: 'BarChart3',
-            variant: 'dark'
-        }
-    ];
-
-    const displayFeatureCards = featureCards.length > 0 ? featureCards : defaultFeatureCards;
-    const displayNavCards = navCards.length > 0 ? navCards : defaultNavCards;
-    const displayCtaBanners = ctaBanners.length > 0 ? ctaBanners : defaultCtaBanners;
 
     return (
         <PageContainer variant="full">
@@ -143,7 +79,7 @@ const AdminHome: React.FC = () => {
                     </div>
 
                     {/* FEATURE CARDS - Dynamic from database */}
-                    {displayFeatureCards.map((card, index) => (
+                    {featureCards.map((card: any, index: number) => (
                         <div
                             key={card.id}
                             className={index === 0 ? "col-span-12 md:col-span-6 lg:col-span-4 h-[400px]" : "col-span-12 md:col-span-6 lg:col-span-4"}
@@ -162,9 +98,9 @@ const AdminHome: React.FC = () => {
                     ))}
 
                     {/* QUICK ACCESS CARDS STACK - 4 columns */}
-                    {displayNavCards.length > 0 && (
+                    {navCards.length > 0 && (
                         <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
-                            {displayNavCards.map(card => (
+                            {navCards.map((card: any) => (
                                 <DashboardNavCard
                                     key={card.id}
                                     path={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
@@ -178,7 +114,7 @@ const AdminHome: React.FC = () => {
                 </div>
 
                 {/* CTA BANNERS - Dynamic from database */}
-                {displayCtaBanners.map(card => (
+                {ctaBanners.map((card: any) => (
                     <CTABanner
                         key={card.id}
                         title={card.title || card.card_title}
