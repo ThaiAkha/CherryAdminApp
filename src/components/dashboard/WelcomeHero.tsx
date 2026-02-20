@@ -1,6 +1,6 @@
 import React from 'react';
 import Badge from '../ui/badge/Badge';
-import * as Icons from 'lucide-react';
+import { getIcon, type IconName } from '../../lib/iconRegistry';
 import { cn } from '../../lib/utils';
 
 export interface WelcomeHeroProps {
@@ -9,7 +9,7 @@ export interface WelcomeHeroProps {
     titleHighlight?: string;
     description: string;
     imageUrl?: string;
-    icon?: string;
+    icon?: string | IconName;
     children?: React.ReactNode;
     className?: string; // Additional classes for the container
 }
@@ -24,7 +24,7 @@ const WelcomeHero: React.FC<WelcomeHeroProps> = ({
     children,
     className
 }) => {
-    const IconComponent = (Icons as any)[icon];
+    const IconComponent = getIcon(icon);
 
     return (
         <div className={cn(

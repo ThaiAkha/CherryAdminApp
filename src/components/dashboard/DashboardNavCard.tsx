@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router'; /* Using react-router per the project's setup */
-import * as Icons from 'lucide-react';
 import { ArrowRight } from 'lucide-react';
+import { getIcon, type IconName } from '../../lib/iconRegistry';
 import { cn } from '../../lib/utils';
 
 export interface DashboardNavCardProps {
     path: string;
-    iconName?: string;
+    iconName?: string | IconName;
     label: string;
     description?: string;
     className?: string; // Optional extra classes
@@ -19,8 +19,8 @@ const DashboardNavCard: React.FC<DashboardNavCardProps> = ({
     description,
     className
 }) => {
-    // Resolve Lucide Icon component correctly
-    const IconComponent = (Icons as any)[iconName] || Icons.LayoutDashboard;
+    // Get icon from registry
+    const IconComponent = getIcon(iconName, getIcon('LayoutDashboard'));
 
     return (
         <Link
