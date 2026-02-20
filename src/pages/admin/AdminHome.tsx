@@ -76,7 +76,7 @@ const AdminHome: React.FC = () => {
                 <div className="grid grid-cols-12 gap-8">
                     {/* SIDEBAR (3 col) - Nav cards */}
                     <div className="col-span-12 md:col-span-4 lg:col-span-3">
-                        <div className="flex flex-col gap-6 sticky top-8">
+                        <div className="flex flex-col gap-8">
                             {navCards.map((card: any) => (
                                 <div key={card.id}>
                                     <DashboardNavCard
@@ -107,7 +107,7 @@ const AdminHome: React.FC = () => {
                                     ctaPath={card.target_path || card.page_slug ? `/${card.target_path || card.page_slug}` : '#'}
                                     icon={card.icon}
                                     variant={card.variant || 'dark'}
-                                    className="flex items-center justify-between gap-6 p-12"
+                                    className="flex items-center justify-between gap-6 p-13"
 
                                 />
                             ))}
