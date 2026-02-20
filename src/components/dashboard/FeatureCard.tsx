@@ -72,12 +72,14 @@ const FeatureCard: React.FC<FeatureCardProps> = ({
     >
       {/* Image Header */}
       {imageUrl && (
-        <div className={cn("overflow-hidden", aspectRatio)}>
+        <div className={cn("overflow-hidden relative", aspectRatio)}>
           <img
             src={imageUrl}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
+          {/* Dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-900/20 dark:to-gray-900/40 pointer-events-none" />
         </div>
       )}
 
