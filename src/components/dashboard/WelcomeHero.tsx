@@ -53,10 +53,16 @@ const WelcomeHero: React.FC<WelcomeHeroProps> = ({
 
             {/* Background Decorator (Image or Icon) */}
             {imageUrl ? (
-                <div className="absolute top-0 right-0 w-1/3 h-full opacity-20 pointer-events-none">
-                    <img src={imageUrl} alt="" className="w-full h-full object-cover rounded-l-full grayscale" />
-                    {/* Gradient to smooth the image fade out on the left */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-gray-900 to-transparent" />
+                <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none">
+                    {/* Photo with color - no grayscale */}
+                    <img
+                        src={imageUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                    />
+                    {/* Multi-layer gradient for smooth blend */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent dark:from-gray-900 dark:via-gray-900/80 dark:to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white/20 dark:to-gray-900/20" />
                 </div>
             ) : (
                 <div className="absolute top-0 right-0 p-12 opacity-[0.03] dark:opacity-10 pointer-events-none">
