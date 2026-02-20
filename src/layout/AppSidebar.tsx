@@ -1,77 +1,51 @@
 import { Link, useLocation } from "react-router";
-import {
-  Home,
-  CalendarPlus,
-  Hotel,
-  Truck,
-  ShoppingCart,
-  ShoppingBag,
-  ClipboardList,
-  CalendarDays,
-  Package,
-  BarChart3,
-  Eye,
-  Database,
-  FolderOpen,
-  LayoutDashboard,
-  BookOpen,
-  PlusCircle,
-  DollarSign,
-  FileText,
-  Download,
-  Newspaper,
-  Route,
-  Car,
-  Palette,
-  type LucideIcon,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { getIcon } from "../lib/iconRegistry";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
+import { contentService } from "../services/content.service";
 import Tooltip from "../components/ui/Tooltip";
 
 type NavItem = {
   name: string;
-  icon: LucideIcon;
+  icon: string; // Icon name as string (from database)
   path: string;
   allowedRoles?: string[];
 };
-
-const coreNavItems: NavItem[] = [
-  { icon: Home, name: "Home", path: "/", allowedRoles: ["admin", "manager", "kitchen", "agency", "driver", "logistics"] },
-  { icon: Hotel, name: "Admin Hotels", path: "/admin-hotels", allowedRoles: ["admin"] },
-  { icon: CalendarDays, name: "Admin Calendar", path: "/admin-calendar", allowedRoles: ["admin"] },
-  { icon: Package, name: "Admin Inventory", path: "/admin-inventory", allowedRoles: ["admin"] },
-  { icon: Database, name: "Admin Database", path: "/admin-database", allowedRoles: ["admin"] },
-  { icon: FolderOpen, name: "Admin Storage", path: "/admin-storage", allowedRoles: ["admin"] },
-  { icon: BarChart3, name: "Admin Reports", path: "/admin-reports", allowedRoles: ["admin"] },
-  { icon: CalendarPlus, name: "Manager Booking", path: "/manager-booking", allowedRoles: ["manager"] },
-  { icon: Truck, name: "Manager Logistic", path: "/logistics", allowedRoles: ["manager", "logistics"] },
-  { icon: ShoppingCart, name: "Manager POS", path: "/manager-pos", allowedRoles: ["manager"] },
-  { icon: ShoppingBag, name: "Market Planner", path: "/market-shop", allowedRoles: ["manager"] },
-  { icon: ClipboardList, name: "Market Shopping", path: "/market-run", allowedRoles: ["manager"] },
-  { icon: Eye, name: "Manager Kitchen", path: "/manager-kitchen", allowedRoles: ["manager"] },
-];
-
-const agencyNavItems: NavItem[] = [
-  { icon: LayoutDashboard, name: "Agency Dashboard", path: "/agency-dashboard", allowedRoles: ["agency"] },
-  { icon: BookOpen, name: "Agency Reservations", path: "/agency-reservations", allowedRoles: ["agency"] },
-  { icon: PlusCircle, name: "Agency New Booking", path: "/agency-booking", allowedRoles: ["agency"] },
-  { icon: BarChart3, name: "Agency Reports", path: "/agency-reports", allowedRoles: ["agency"] },
-  { icon: DollarSign, name: "Agency Net Rates", path: "/agency-rates", allowedRoles: ["agency"] },
-  { icon: FileText, name: "Agency Policies", path: "/agency-terms", allowedRoles: ["agency"] },
-  { icon: Download, name: "Agency Downloads", path: "/agency-assets", allowedRoles: ["agency"] },
-  { icon: Newspaper, name: "Agency News", path: "/agency-news", allowedRoles: ["agency"] },
-];
-
-const driverNavItems: NavItem[] = [
-  { icon: Route, name: "Driver Route", path: "/driver", allowedRoles: ["driver"] },
-  { icon: Car, name: "Driver Home", path: "/driver-home", allowedRoles: ["driver"] },
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, toggleMobileSidebar } = useSidebar();
   const { user } = useAuth();
   const location = useLocation();
+  const [menuItems, setMenuItems] = useState<NavItem[]>([]);
+
+  // Load menu items from database
+  useEffect(() => {
+    const loadMenu = async () => {
+      try {
+        const items = await contentService.getMenuItems();
+
+        if (!items) {
+          console.error('No menu items returned from database');
+          return;
+        }
+
+        // Transform database items to NavItem format
+        const navItems: NavItem[] = items.map((item: any) => ({
+          name: item.menu_label,
+          icon: item.header_icon || 'LayoutDashboard', // Fallback icon
+          path: `/${item.page_slug}`,
+          allowedRoles: item.access_level ? [item.access_level] : []
+        }));
+
+        setMenuItems(navItems);
+      } catch (error) {
+        console.error('Failed to load menu items:', error);
+      }
+    };
+
+    loadMenu();
+  }, []);
 
   const isSidebarOpen = isExpanded || isMobileOpen;
   const isActive = (path: string) => location.pathname === path;
@@ -87,7 +61,7 @@ const AppSidebar: React.FC = () => {
   };
 
   const renderNavItem = (nav: NavItem) => {
-    const IconComponent = nav.icon;
+    const IconComponent = getIcon(nav.icon); // Convert string to component
     const active = isActive(nav.path);
 
     const navLink = (
@@ -188,13 +162,16 @@ const AppSidebar: React.FC = () => {
       <div className={`flex flex-col flex-1 no-scrollbar ${isSidebarOpen ? 'overflow-y-auto overflow-x-hidden' : 'overflow-visible'}`} style={{ overflow: isSidebarOpen ? undefined : 'visible' }}>
         <nav className="mb-6" style={{ overflow: 'visible' }}>
           <div className="flex flex-col gap-4" style={{ overflow: 'visible' }}>
-            {/* All Menu Items — flat list */}
+            {/* All Menu Items — loaded from database */}
             <div style={{ overflow: 'visible' }}>
               <ul className="flex flex-col gap-1" style={{ overflow: 'visible' }}>
-                {filterByRole(coreNavItems).map(renderNavItem)}
-                {filterByRole(agencyNavItems).map(renderNavItem)}
-                {filterByRole(driverNavItems).map(renderNavItem)}
-                {user?.role === 'admin' && renderNavItem({ icon: Palette, name: "UI Showcase", path: "/admin/showcase", allowedRoles: ["admin"] })}
+                {filterByRole(menuItems).map(renderNavItem)}
+                {user?.role === 'admin' && renderNavItem({
+                  icon: 'Palette',
+                  name: "UI Showcase",
+                  path: "/admin/showcase",
+                  allowedRoles: ["admin"]
+                })}
               </ul>
             </div>
           </div>
