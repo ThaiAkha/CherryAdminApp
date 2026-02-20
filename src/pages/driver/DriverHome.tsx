@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 
 import PageContainer from '../../components/layout/PageContainer';
-import PageHeader from '../../components/layout/PageHeader';
 import Badge from '../../components/ui/badge/Badge';
 import StatCard from '../../components/ui/StatCard';
+import WelcomeHero from '../../components/dashboard/WelcomeHero';
 import { usePageHeader } from '../../context/PageHeaderContext';
 import { contentService } from '../../services/content.service';
 
